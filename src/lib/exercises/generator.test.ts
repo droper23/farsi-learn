@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { vocabulary } from '../../content/vocabulary'
+import { vocabulary, findVocab } from '../../content/vocabulary'
 import { alphabet } from '../../content/alphabet'
 import { sentences } from '../../content/sentences'
+import { grammar } from '../../content/grammar'
 import {
   generateVocabMcq, generateVocabTypeAnswer, generateLetterSoundMcq,
   generateLetterPositionMcq, generateSentenceWordOrder, generateSentenceFillBlank,
   generateVocabListening, generateSentenceListening, generateCustomMcq, generateCustomTypeAnswer,
+  generateConjugationMcq, generateConjugationTypeAnswer, generateGrammarRuleMcq,
 } from './generator'
 import { gradeMcq, gradeTypeAnswer, gradeWordOrder, gradeListening, ratingFor } from './grade'
 import type { CustomReviewableSource } from './types'
@@ -14,6 +16,7 @@ const sampleVocab = vocabulary.find((v) => v.id === 'greet-salam')!
 const sampleLetter = alphabet.find((l) => l.id === 'be')!
 const nonJoiningLetter = alphabet.find((l) => l.id === 'alef')!
 const sampleSentence = sentences.find((s) => s.id === 's-intro-name')!
+const sampleVerb = findVocab('verb-raftan')!
 
 describe('vocab exercises', () => {
   it('mcq fa->en has exactly one correct option among 4 distinct options', () => {
@@ -105,6 +108,71 @@ describe('custom (learner-authored saved word) exercises', () => {
 
     const enToFa = generateCustomTypeAnswer(customItem, 'en-fa')
     expect(gradeTypeAnswer(enToFa, customItem.fa)).toBe(true)
+  })
+})
+
+describe('conjugation exercises', () => {
+  it('mcq has exactly one correct option among 4 distinct options, all from the same verb', () => {
+    const ex = generateConjugationMcq(sampleVerb, 'present', '1sg')
+    expect(ex.reviewable).toEqual({ kind: 'vocab', itemId: sampleVerb.id })
+    expect(ex.options.length).toBe(4)
+    expect(new Set(ex.options.map((o) => o.id)).size).toBe(4)
+    expect(ex.correctOptionId).toBe('1sg')
+    expect(gradeMcq(ex, '1sg')).toBe(true)
+    expect(ex.options.find((o) => o.id === '1sg')?.fa).toBe('می‌روم')
+  })
+
+  it('mcq for the past tense picks the bare 3rd-singular form as a valid option', () => {
+    const ex = generateConjugationMcq(sampleVerb, 'past', '3sg')
+    expect(ex.options.find((o) => o.id === '3sg')?.fa).toBe('رفت')
+  })
+
+  it('type-answer is gradable against the correct conjugated Persian form', () => {
+    const ex = generateConjugationTypeAnswer(sampleVerb, 'present', '2pl')
+    expect(ex.reviewable).toEqual({ kind: 'vocab', itemId: sampleVerb.id })
+    expect(ex.answerLang).toBe('fa')
+    expect(ex.acceptedAnswers).toEqual(['می‌روید'])
+    expect(gradeTypeAnswer(ex, 'می‌روید')).toBe(true)
+    expect(gradeTypeAnswer(ex, 'یک جواب اشتباه')).toBe(false)
+  })
+
+  it('a random (unspecified) person still produces a gradable exercise', () => {
+    const ex = generateConjugationMcq(sampleVerb, 'past')
+    expect(gradeMcq(ex, ex.correctOptionId)).toBe(true)
+  })
+})
+
+describe('grammar-rule self-check mcq', () => {
+  const conceptWithExamples = grammar.find((g) => g.id === 'g-object-marker-ra')!
+
+  it('has one correct option (one of the concept\'s own example sentences) among 4', () => {
+    const ex = generateGrammarRuleMcq(conceptWithExamples, grammar)
+    expect(ex).toBeTruthy()
+    if (!ex) return
+    expect(ex.reviewable).toEqual({ kind: 'grammar', itemId: conceptWithExamples.id })
+    expect(ex.options.length).toBe(4)
+    expect(new Set(ex.options.map((o) => o.id)).size).toBe(4)
+    expect(conceptWithExamples.exampleSentenceIds).toContain(ex.correctOptionId)
+    expect(gradeMcq(ex, ex.correctOptionId)).toBe(true)
+  })
+
+  it('never picks a distractor from a related concept', () => {
+    // Run several times since distractor selection is randomized.
+    for (let i = 0; i < 20; i++) {
+      const ex = generateGrammarRuleMcq(conceptWithExamples, grammar)
+      if (!ex) continue
+      const relatedIds = new Set(conceptWithExamples.relatedConceptIds ?? [])
+      for (const opt of ex.options) {
+        if (opt.id === ex.correctOptionId) continue
+        const owningConcept = grammar.find((g) => g.exampleSentenceIds.includes(opt.id))
+        if (owningConcept) expect(relatedIds.has(owningConcept.id)).toBe(false)
+      }
+    }
+  })
+
+  it('returns null for a concept with no example sentences', () => {
+    const empty = grammar.find((g) => g.exampleSentenceIds.length === 0)!
+    expect(generateGrammarRuleMcq(empty, grammar)).toBeNull()
   })
 })
 

@@ -1,7 +1,9 @@
 import type { AlphabetLetter } from '../../content/types'
-import type { VocabItem, ExampleSentence, PassageQuestion } from '../../content/types'
+import type { VocabItem, ExampleSentence, PassageQuestion, GrammarConcept } from '../../content/types'
 import { vocabulary } from '../../content/vocabulary'
 import { alphabet } from '../../content/alphabet'
+import { findSentence } from '../../content/sentences'
+import { conjugate, pronounLabel, type ConjugationPerson, type ConjugationTense } from '../conjugation'
 import type {
   Exercise, ExerciseOption, McqExercise, TypeAnswerExercise, WordOrderExercise, MatchingExercise,
   ListeningExercise, CustomReviewableSource,
@@ -345,6 +347,116 @@ export function generatePassageComprehensionMcq(passageId: string, question: Pas
     options,
     correctOptionId: `${question.id}-opt${question.correctIndex}`,
     hints: [`This is a comprehension check for "${passageId}" — reread the passage if unsure.`],
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Verb conjugation (Pass 4) — reuses the 'vocab' ReviewableKind, since a
+// conjugation drill is still testing the same underlying vocab item (the
+// verb), just a harder facet of it. See lib/conjugation.ts for the rule
+// set and its sourcing.
+// ---------------------------------------------------------------------------
+
+function conjugationPrompt(verb: VocabItem, tense: ConjugationTense, person: ConjugationPerson): string {
+  return `${verb.en} — ${tense === 'present' ? 'present' : 'simple past'} tense, "${pronounLabel(person)}"`
+}
+
+/** MCQ conjugation drill: distractors are the SAME verb's other five
+ *  person-forms, not other vocabulary — the most pedagogically meaningful
+ *  near-misses (mixing up person endings), and guaranteed-correct Persian
+ *  since they come straight from the same rule-based `conjugate()` call as
+ *  the right answer. */
+export function generateConjugationMcq(verb: VocabItem, tense: ConjugationTense, person?: ConjugationPerson): McqExercise {
+  const forms = conjugate(verb, tense)
+  const targetPerson = person ?? forms[Math.floor(Math.random() * forms.length)].person
+  const target = forms.find((f) => f.person === targetPerson)!
+  const distractors = shuffle(forms.filter((f) => f.person !== targetPerson)).slice(0, 3)
+  const options: ExerciseOption[] = shuffle([
+    { id: target.person, fa: target.fa, translit: target.translit },
+    ...distractors.map((d) => ({ id: d.person, fa: d.fa, translit: d.translit })),
+  ])
+  return {
+    id: exerciseId(`conj-mcq-${verb.id}-${tense}-${targetPerson}`), kind: 'mcq',
+    reviewable: { kind: 'vocab', itemId: verb.id },
+    instructions: `Choose the correct form for "${target.pronounFa}" (${target.pronounTranslit})`,
+    promptFa: verb.fa, promptTranslit: verb.translit,
+    promptEn: conjugationPrompt(verb, tense, targetPerson),
+    options,
+    correctOptionId: target.person,
+    hints: [
+      `Infinitive: ${verb.fa} (${verb.translit})`,
+      `${tense === 'present' ? 'Present' : 'Past'} stem: ${tense === 'present' ? verb.verbStems!.present : verb.verbStems!.past}`,
+    ],
+  }
+}
+
+export function generateConjugationTypeAnswer(verb: VocabItem, tense: ConjugationTense, person?: ConjugationPerson): TypeAnswerExercise {
+  const forms = conjugate(verb, tense)
+  const targetPerson = person ?? forms[Math.floor(Math.random() * forms.length)].person
+  const target = forms.find((f) => f.person === targetPerson)!
+  const example = forms.find((f) => f.person !== targetPerson)!
+  return {
+    id: exerciseId(`conj-type-${verb.id}-${tense}-${targetPerson}`), kind: 'type-answer',
+    reviewable: { kind: 'vocab', itemId: verb.id },
+    instructions: `Type the ${tense === 'present' ? 'present' : 'simple past'} tense form for "${target.pronounFa}" (${target.pronounTranslit})`,
+    promptFa: verb.fa, promptTranslit: verb.translit,
+    promptEn: conjugationPrompt(verb, tense, targetPerson),
+    answerLang: 'fa', acceptedAnswers: [target.fa],
+    hints: [
+      `${tense === 'present' ? 'Present' : 'Past'} stem: ${tense === 'present' ? verb.verbStems!.present : verb.verbStems!.past}`,
+      `Example: ${example.pronounFa} → ${example.fa}`,
+    ],
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Grammar-rule self-check (Pass 4) — tests "do you understand this rule"
+// directly, rather than only indirectly through generic sentence drills.
+// ---------------------------------------------------------------------------
+
+/** Asks the learner to pick which sentence actually demonstrates the given
+ *  grammar concept. The correct answer is one of the concept's own linked
+ *  `exampleSentenceIds`; distractors are example sentences borrowed from
+ *  *other* grammar concepts already in the corpus (excluding related
+ *  concepts, so distractors aren't near-misses of the same rule) — this
+ *  needs zero new linguistic content, just a new combination of existing,
+ *  already-vetted sentences. Returns null if the corpus can't support a
+ *  fair 4-option question (concept has no examples, or too few other
+ *  concepts have examples of their own to draw distractors from). */
+export function generateGrammarRuleMcq(concept: GrammarConcept, pool: GrammarConcept[]): McqExercise | null {
+  if (concept.exampleSentenceIds.length === 0) return null
+  const correctSentenceId = concept.exampleSentenceIds[Math.floor(Math.random() * concept.exampleSentenceIds.length)]
+  const correctSentence = findSentence(correctSentenceId)
+  if (!correctSentence) return null
+
+  const relatedIds = new Set(concept.relatedConceptIds ?? [])
+  const distractorConcepts = shuffle(
+    pool.filter((c) => c.id !== concept.id && !relatedIds.has(c.id) && c.exampleSentenceIds.length > 0),
+  )
+  const distractors: ExampleSentence[] = []
+  for (const c of distractorConcepts) {
+    if (distractors.length >= 3) break
+    const sid = c.exampleSentenceIds[Math.floor(Math.random() * c.exampleSentenceIds.length)]
+    const s = findSentence(sid)
+    if (s && s.id !== correctSentence.id && !distractors.some((d) => d.id === s.id)) distractors.push(s)
+  }
+  if (distractors.length < 3) return null
+
+  const options: ExerciseOption[] = shuffle([
+    { id: correctSentence.id, fa: correctSentence.fa, translit: correctSentence.translit },
+    ...distractors.map((s) => ({ id: s.id, fa: s.fa, translit: s.translit })),
+  ])
+  return {
+    id: exerciseId(`grammar-rule-${concept.id}`), kind: 'mcq',
+    reviewable: { kind: 'grammar', itemId: concept.id },
+    instructions: `Which sentence demonstrates: ${concept.title}?`,
+    promptEn: concept.explanation[0],
+    options,
+    correctOptionId: correctSentence.id,
+    hints: [
+      concept.commonMistake ? `Common mistake: ${concept.commonMistake}` : concept.explanation[0],
+      `Look for: ${concept.title}`,
+    ],
   }
 }
 

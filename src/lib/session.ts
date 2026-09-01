@@ -1,21 +1,24 @@
 import { db } from '../storage/db'
-import { getDueSummary, getOrCreateReviewState, getSchedulerConfig } from '../storage/progressRepo'
+import { getDueSummary, getOrCreateReviewState, getReviewStates, getSchedulerConfig } from '../storage/progressRepo'
 import type { ReviewState } from '../srs/types'
-import type { ReviewableKind, VocabItem } from '../content/types'
+import { DEFAULT_SCHEDULER_CONFIG } from '../srs/types'
+import type { ReviewableKind, VocabCategory, VocabItem } from '../content/types'
 import { allUnitsSorted, findUnit } from '../content/curriculum'
 import type { Unit } from '../content/types'
 import { findLetter } from '../content/alphabet'
 import { findVocab, vocabulary } from '../content/vocabulary'
-import { findGrammarConcept } from '../content/grammar'
+import { findGrammarConcept, grammar } from '../content/grammar'
 import { findSentence, sentences } from '../content/sentences'
 import { findPassage } from '../content/passages'
+import { hasConjugableStems, hasRegularPresent, type ConjugationTense } from './conjugation'
 import type { Exercise } from './exercises/types'
 import {
   generateVocabMcq, generateVocabTypeAnswer, generateVocabMatching, generateVocabListening,
   generateLetterSoundMcq, generateLetterNameMcq, generateLetterPositionMcq,
   generateSentenceWordOrder, generateSentenceTranslationMcq, generateSentenceFillBlank,
   generateSentenceListening, generateCustomMcq, generateCustomTypeAnswer,
-  generatePassageComprehensionMcq,
+  generatePassageComprehensionMcq, generateConjugationMcq, generateConjugationTypeAnswer,
+  generateGrammarRuleMcq,
   type ExerciseDifficultyHint,
 } from './exercises/generator'
 
@@ -97,6 +100,18 @@ export async function exerciseForReviewable(kind: ReviewableKind, itemId: string
   if (kind === 'vocab') {
     const item = findVocab(itemId)
     if (!item) return null
+    // Conjugation drills: only for verbs with recorded stems, only outside
+    // brand-new ("scaffolded") practice — conjugating a verb the learner
+    // just met for the first time is too big a jump. بودن's present tense
+    // is excluded (irregular copula, outside the fully rule-based system —
+    // see lib/conjugation.ts); its past tense is regular and still used.
+    if (difficulty !== 'scaffolded' && hasConjugableStems(item) && Math.random() < 0.35) {
+      const canPresent = hasRegularPresent(item)
+      const tense: ConjugationTense = canPresent && Math.random() < 0.5 ? 'present' : 'past'
+      return difficulty === 'production' && Math.random() < 0.5
+        ? generateConjugationTypeAnswer(item, tense)
+        : generateConjugationMcq(item, tense)
+    }
     // Listening comprehension is only offered outside brand-new ("scaffolded")
     // practice, where the learner hasn't seen the word's sound/spelling yet —
     // it needs at least one prior exposure to be a fair recognition test.
@@ -129,9 +144,15 @@ export async function exerciseForReviewable(kind: ReviewableKind, itemId: string
     if (difficulty === 'production') return generateSentenceWordOrder(sentence)
     return generateSentenceFillBlank(sentence) ?? generateSentenceTranslationMcq(sentence, sentences)
   }
-  // grammar concepts are drilled through their example sentences
+  // grammar concepts are drilled through their example sentences, plus
+  // (outside brand-new "scaffolded" practice) a direct "which sentence
+  // demonstrates this rule" self-check — see generateGrammarRuleMcq.
   const concept = findGrammarConcept(itemId)
   if (!concept || concept.exampleSentenceIds.length === 0) return null
+  if (difficulty !== 'scaffolded' && Math.random() < 0.3) {
+    const ruleMcq = generateGrammarRuleMcq(concept, grammar)
+    if (ruleMcq) return ruleMcq
+  }
   const sentenceId = concept.exampleSentenceIds[Math.floor(Math.random() * concept.exampleSentenceIds.length)]
   const sentence = findSentence(sentenceId)
   if (!sentence) return null
@@ -148,6 +169,68 @@ export async function buildReviewExercises(limit = 30): Promise<Exercise[]> {
   const exercises: Exercise[] = []
   for (const state of due) {
     const ex = await exerciseForReviewable(state.kind, state.itemId, difficultyFor(state))
+    if (ex) exercises.push(ex)
+  }
+  return exercises
+}
+
+// ---------------------------------------------------------------------------
+// Focused study (Pass 4) — practice outside the due-date schedule.
+//
+// Review today is 100% due-date-gated (buildReviewExercises above only
+// ever looks at getDueSummary's learningDue/reviewDue). `lapseCount` and
+// `easeFactor` already exist on every ReviewState and already bias
+// due-queue *ordering* (see getDueSummary), but nothing lets a learner
+// proactively study "the stuff I keep getting wrong" or "just this topic"
+// ahead of its actual due date. This reads only existing reviewStates —
+// no new Dexie tables, no change to the SRS scheduler itself (answering
+// still calls the normal recordReview/applyRating path).
+// ---------------------------------------------------------------------------
+
+export type FocusedFilter = 'weak' | 'category'
+
+export interface FocusedSessionOptions {
+  /** Restrict to one reviewable kind (e.g. only vocab). Omit for all kinds. */
+  kind?: ReviewableKind
+  filterBy: FocusedFilter
+  /** Required when filterBy is 'category' — matched against vocab/custom
+   *  items' resolved category (letters/grammar/sentences have no vocab
+   *  category, so they're excluded from a category-filtered session). */
+  category?: VocabCategory
+  limit?: number
+}
+
+/** "Weak" = has lapsed at least once, is currently relearning, or has an
+ *  ease factor pulled below the starting default — the same signal
+ *  getDueSummary already uses to prioritize *within* the due queue, just
+ *  applied here without the due-date gate. */
+function isWeak(state: ReviewState): boolean {
+  return state.lapseCount > 0 || state.state === 'relearning' || state.easeFactor < DEFAULT_SCHEDULER_CONFIG.startingEase
+}
+
+function stateVocabCategory(state: ReviewState): VocabCategory | null {
+  if (state.kind === 'vocab') return findVocab(state.itemId)?.category ?? null
+  return null
+}
+
+export async function buildFocusedSession(options: FocusedSessionOptions): Promise<Exercise[]> {
+  const { kind, filterBy, category, limit = 20 } = options
+  let states = await getReviewStates(kind)
+  states = states.filter((s) => !s.suspended && s.state !== 'new')
+
+  if (filterBy === 'weak') {
+    states = states.filter(isWeak)
+    // Weakest first: most lapses, then lowest ease — surfaces the most
+    // struggled-with items at the top of the session.
+    states.sort((a, b) => b.lapseCount - a.lapseCount || a.easeFactor - b.easeFactor)
+  } else {
+    states = category ? states.filter((s) => stateVocabCategory(s) === category) : []
+  }
+
+  const chosen = states.slice(0, limit)
+  const exercises: Exercise[] = []
+  for (const state of chosen) {
+    const ex = await exerciseForReviewable(state.kind, state.itemId, 'standard')
     if (ex) exercises.push(ex)
   }
   return exercises

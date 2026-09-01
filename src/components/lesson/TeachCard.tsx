@@ -1,9 +1,10 @@
-import type { ReviewableKind } from '../../content/types'
+import type { ReviewableKind, VocabItem } from '../../content/types'
 import { findLetter } from '../../content/alphabet'
 import { findVocab } from '../../content/vocabulary'
 import { findGrammarConcept } from '../../content/grammar'
 import { findSentence } from '../../content/sentences'
 import { findPassage } from '../../content/passages'
+import { conjugate, hasRegularPresent, type ConjugationTense } from '../../lib/conjugation'
 import { PersianText } from '../shared/PersianText'
 import { Card } from '../shared/Card'
 import { Button } from '../shared/Button'
@@ -65,7 +66,47 @@ function VocabTeach({ id }: { id: string }) {
       {v.register !== 'neutral' && (
         <span className="rounded-full bg-[var(--color-warn-soft)] px-2 py-0.5 text-xs">{v.register}</span>
       )}
+      {v.pos === 'verb' && v.verbStems && <ConjugationTable verb={v} />}
     </Card>
+  )
+}
+
+/** Shows the full present + simple-past conjugation paradigm for a verb,
+ *  computed from its stored stems via the rule-based lib/conjugation.ts
+ *  (see that file for the rule set and sourcing). Purely a teaching aid —
+ *  see generateConjugationMcq/TypeAnswer in lib/exercises/generator.ts for
+ *  where this gets drilled. */
+function ConjugationTable({ verb }: { verb: VocabItem }) {
+  return (
+    <div className="mt-1 flex w-full flex-col gap-3 border-t border-[var(--color-border)] pt-3 text-left">
+      <p className="text-center text-xs font-medium text-[var(--color-ink-muted)]">Conjugation</p>
+      {hasRegularPresent(verb)
+        ? <ConjugationRows verb={verb} tense="present" label="Present" />
+        : (
+          <div>
+            <p className="mb-1 text-xs font-medium text-[var(--color-ink-muted)]">Present (irregular — copula)</p>
+            <ConjugationRows verb={verb} tense="present" label="Present" />
+          </div>
+        )}
+      <ConjugationRows verb={verb} tense="past" label="Simple past" />
+    </div>
+  )
+}
+
+function ConjugationRows({ verb, tense, label }: { verb: VocabItem; tense: ConjugationTense; label: string }) {
+  const forms = conjugate(verb, tense)
+  return (
+    <div className="rounded-xl bg-[var(--color-surface-raised)] p-3">
+      <p className="mb-2 text-xs font-medium text-[var(--color-ink-muted)]">{label}</p>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+        {forms.map((f) => (
+          <div key={f.person} className="flex items-baseline justify-between gap-2 text-sm">
+            <span className="text-[var(--color-ink-muted)]">{f.pronounFa}</span>
+            <bdi lang="fa" dir="rtl" className="fa-text">{f.fa}</bdi>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
