@@ -11,6 +11,10 @@ ship with the app and always play, on any device.
 Still explicitly computer-generated/approximate (not a native-speaker
 recording) — the UI labels it as such, honestly, same as before.
 
+Requires ffmpeg on PATH (`brew install ffmpeg` / `apt install ffmpeg`) —
+edge-tts's raw output is re-encoded into a standard, well-headered MP3 for
+broad playback compatibility (see reencode_for_compatibility below).
+
 Usage:
     npx tsx scripts/collect-audio-text.ts > scripts/.audio-texts.json
     python3 scripts/generate_audio.py
@@ -23,7 +27,10 @@ to its audio file path.
 import asyncio
 import hashlib
 import json
+import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import edge_tts
@@ -41,6 +48,24 @@ def filename_for(text: str) -> str:
     return hashlib.sha1(text.encode("utf-8")).hexdigest()[:16] + ".mp3"
 
 
+def reencode_for_compatibility(src: Path, dest: Path) -> bool:
+    """edge-tts's raw output is a 24kHz MPEG-2 Layer III stream with no
+    Xing/VBR header (ffprobe has to *estimate* its duration from bitrate) —
+    a real class of iOS Safari playback failure: AVFoundation's stricter MP3
+    decoder can silently refuse to play files like this, even though
+    desktop Chrome/Safari tolerate them fine. Re-encoding through ffmpeg to
+    a standard 44.1kHz MPEG-1 stream with a proper header fixes it, at
+    effectively the same file size (48kbps mono voice audio)."""
+    result = subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-ar", "44100", "-ac", "1", "-b:a", "48k", str(dest)],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        print(f"  ffmpeg re-encode failed: {result.stderr.strip()}", file=sys.stderr)
+        return False
+    return dest.exists() and dest.stat().st_size > 0
+
+
 async def synthesize_one(text: str, sem: asyncio.Semaphore) -> tuple[str, bool]:
     dest = AUDIO_DIR / filename_for(text)
     if dest.exists() and dest.stat().st_size > 0:
@@ -48,10 +73,12 @@ async def synthesize_one(text: str, sem: asyncio.Semaphore) -> tuple[str, bool]:
     async with sem:
         for attempt in range(3):
             try:
-                communicate = edge_tts.Communicate(text, VOICE, rate=RATE)
-                await communicate.save(str(dest))
-                if dest.exists() and dest.stat().st_size > 0:
-                    return text, True
+                with tempfile.TemporaryDirectory() as tmp:
+                    raw = Path(tmp) / "raw.mp3"
+                    communicate = edge_tts.Communicate(text, VOICE, rate=RATE)
+                    await communicate.save(str(raw))
+                    if raw.exists() and raw.stat().st_size > 0 and reencode_for_compatibility(raw, dest):
+                        return text, True
             except Exception as e:  # noqa: BLE001 - best-effort content pipeline, log and retry
                 print(f"  retry {attempt + 1}/3 for {text!r}: {e}", file=sys.stderr)
                 await asyncio.sleep(1.5)
@@ -60,6 +87,9 @@ async def synthesize_one(text: str, sem: asyncio.Semaphore) -> tuple[str, bool]:
 
 
 async def main() -> None:
+    if not shutil.which("ffmpeg"):
+        print("ffmpeg not found on PATH — required to re-encode clips for iOS Safari compatibility", file=sys.stderr)
+        sys.exit(1)
     if not TEXTS_FILE.exists():
         print(f"missing {TEXTS_FILE} — run the tsx collector first (see module docstring)", file=sys.stderr)
         sys.exit(1)

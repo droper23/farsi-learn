@@ -255,10 +255,17 @@ caches each one the first time it's played (`vite.config.ts` `runtimeCaching`
 for `/audio/*.mp3`, `CacheFirst`), so replays and later offline use are
 instant without an unannounced first-load cost.
 
+`edge-tts`'s raw output is a 24kHz MPEG-2 Layer III stream with no Xing/VBR
+header — desktop browsers tolerate it, but it's a known cause of silent
+playback failure on iOS Safari's stricter AVFoundation-based decoder.
+`scripts/generate_audio.py` re-encodes every clip through ffmpeg into a
+standard, properly-headered 44.1kHz MP3 before it's saved, at effectively
+the same file size.
+
 **Regenerating audio** after authoring new content:
 
 ```sh
-npm run generate:audio   # requires python3 + `pip install -r scripts/requirements.txt`; needs network access
+npm run generate:audio   # requires python3 + `pip install -r scripts/requirements.txt` + ffmpeg on PATH; needs network access
 ```
 
 This is idempotent — it only synthesizes text that doesn't already have a
