@@ -4,7 +4,8 @@
  * Design principle: all learning content (alphabet, vocabulary, grammar,
  * sentences, lessons) is plain, statically-typed data — never hard-coded
  * into UI components. Adding the 501st vocabulary word means adding one
- * object to a data file, not touching a component. See src/content/README.md.
+ * object to a data file, not touching a component. See the repo README's
+ * "Where the learning content lives" section for the full guide.
  *
  * Every piece of *linguistic* content (anything a learner will read as a
  * fact about Persian) carries a `confidence` field. Content authored by the
