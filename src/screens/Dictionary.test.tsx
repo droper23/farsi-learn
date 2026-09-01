@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { Dictionary } from './Dictionary'
 import { vocabulary } from '../content/vocabulary'
@@ -18,15 +18,14 @@ describe('Dictionary — default view shows every word, A-Z (instead of nothing)
   })
 
   it('switches to search results once a query is typed, hiding the full A-Z list', async () => {
-    const { default: userEvent } = await import('@testing-library/user-event')
-    const user = userEvent.setup()
     render(<MemoryRouter><Dictionary /></MemoryRouter>)
 
-    await user.type(screen.getByLabelText(/Search the dictionary/i), 'hello')
+    // A single change event (one re-render) rather than typing character by
+    // character — the default view renders ~390 cards, so each keystroke's
+    // re-render is heavy enough that 5 of them in a row under full-suite
+    // parallel load caused this test to occasionally time out.
+    fireEvent.change(screen.getByLabelText(/Search the dictionary/i), { target: { value: 'hello' } })
     expect(screen.queryByText(`All words (${vocabulary.length})`)).not.toBeInTheDocument()
-    // The default view renders ~390 cards, so the re-render this search
-    // triggers is heavier than a typical test — allow more time under
-    // full-suite parallel load.
-    expect(await screen.findByText('hello / hi', {}, { timeout: 5000 })).toBeInTheDocument()
+    expect(await screen.findByText('hello / hi')).toBeInTheDocument()
   })
 })
