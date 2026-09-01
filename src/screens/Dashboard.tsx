@@ -33,7 +33,10 @@ export function Dashboard() {
   const summary = useAsyncData(() => getTodaySummary(), [])
   const mistakes = useAsyncData(() => getRecentMistakes(5), [])
   const settings = useLiveQuery(() => getSettings(), [])
-  const totalReviewables = useLiveQuery(() => db.reviewStates.count(), [])
+  const totalReviewables = useLiveQuery(
+    () => db.reviewStates.where('state').notEqual('new').count(),
+    [],
+  )
   const savedItemsById = useLiveQuery(
     () => db.savedItems.toArray().then((items) => new Map(items.map((i) => [i.id, i]))),
     [],
@@ -92,9 +95,9 @@ export function Dashboard() {
           </div>
           {summary.data && (
             <p className="text-sm text-[var(--color-ink-muted)]">
-              {summary.data.hasLesson
+              {summary.data.currentUnit
                 ? `Current unit: ${summary.data.currentUnit.title} (lesson ${summary.data.lessonNumber} of ${summary.data.totalLessons})`
-                : 'Current unit complete'}
+                : "You've completed the whole curriculum!"}
               {' · '}
               {summary.data.newItemsToday} of {summary.data.newItemsCap} new items today
             </p>
@@ -120,8 +123,11 @@ export function Dashboard() {
           )}
           {plan && plan.steps.length === 0 && (
             <p className="text-sm text-[var(--color-ink-muted)]">
-              You're all caught up! Browse the <a className="underline" href="#/dictionary">dictionary</a> or revisit a unit in{' '}
-              <a className="underline" href="#/learn">Learn</a>.
+              {summary.data?.hasLesson
+                ? <>You've reached today's {summary.data.newItemsCap}-new-item goal — new lessons resume tomorrow. Reviews will show up here as they come due, or browse the{' '}
+                    <a className="underline" href="#/dictionary">dictionary</a> in the meantime.</>
+                : <>You're all caught up! Browse the <a className="underline" href="#/dictionary">dictionary</a> or revisit a unit in{' '}
+                    <a className="underline" href="#/learn">Learn</a>.</>}
             </p>
           )}
         </Card>

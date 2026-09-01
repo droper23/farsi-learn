@@ -58,7 +58,7 @@ export function ReviewSession() {
             <Card className="flex flex-col gap-2">
               <p className="text-sm font-medium">Up next</p>
               <p className="text-sm text-[var(--color-ink-muted)]">
-                <span className="font-medium text-[var(--color-ink)]">{summary.data.currentUnit.title}</span> — lesson {summary.data.lessonNumber} of {summary.data.totalLessons}
+                <span className="font-medium text-[var(--color-ink)]">{summary.data.currentUnit!.title}</span> — lesson {summary.data.lessonNumber} of {summary.data.totalLessons}
               </p>
               <Button onClick={() => navigate('/lesson')} fullWidth>Start lesson</Button>
             </Card>
@@ -88,7 +88,7 @@ export function ReviewSession() {
             <Card className="flex flex-col gap-2">
               <p className="text-sm font-medium">Up next</p>
               <p className="text-sm text-[var(--color-ink-muted)]">
-                <span className="font-medium text-[var(--color-ink)]">{summary.data.currentUnit.title}</span> — lesson {summary.data.lessonNumber} of {summary.data.totalLessons}
+                <span className="font-medium text-[var(--color-ink)]">{summary.data.currentUnit!.title}</span> — lesson {summary.data.lessonNumber} of {summary.data.totalLessons}
               </p>
             </Card>
           )}

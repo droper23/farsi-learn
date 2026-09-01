@@ -19,7 +19,7 @@ export function UnitDetail() {
   const state = useAsyncData(async () => {
     if (!unit) return null
     const [current, completed] = await Promise.all([getCurrentUnit(), getLessonsCompleted(unit.id)])
-    return { isCurrent: current.id === unit.id, completed, currentUnit: current }
+    return { isCurrent: current?.id === unit.id, completed, currentUnit: current }
   }, [unit?.id])
 
   if (!unit) return <PageHeader title="Unit not found" />

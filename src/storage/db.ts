@@ -21,7 +21,9 @@ export interface SavedItem {
 }
 
 /** One row per learning event, for the "recent mistakes" dashboard widget
- *  and lightweight stats. Not a full audit log — trimmed periodically. */
+ *  and lightweight stats. Not a full audit log — trimmed on every write by
+ *  progressRepo.ts `recordReview` (see LEARNING_EVENT_RETENTION_DAYS /
+ *  MAX_LEARNING_EVENTS there) so it can't grow without bound. */
 export interface LearningEvent {
   id?: number
   key: ReviewableKey

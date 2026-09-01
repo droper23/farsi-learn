@@ -37,14 +37,17 @@ export type LessonStep = TeachCard | ExerciseStep
 // Curriculum progress
 // ---------------------------------------------------------------------------
 
-export async function getCurrentUnit(): Promise<Unit> {
+/** Returns the first unit with an incomplete lesson, or `null` once every
+ *  unit in the curriculum is done — callers must render a genuine
+ *  "curriculum complete" state rather than naming a stale unit. */
+export async function getCurrentUnit(): Promise<Unit | null> {
   const progress = await db.unitProgress.toArray()
   const progressById = new Map(progress.map((p) => [p.unitId, p]))
   for (const unit of allUnitsSorted) {
     const p = progressById.get(unit.id)
     if (!p || p.lessonsCompleted < unit.lessonCount) return unit
   }
-  return allUnitsSorted[allUnitsSorted.length - 1]
+  return null
 }
 
 export async function getLessonsCompleted(unitId: string): Promise<number> {
@@ -256,6 +259,7 @@ export interface LessonPlan {
  *  wherever that unit's own progress left off. */
 export async function buildNextLesson(unitId?: string): Promise<LessonPlan | null> {
   const unit = (unitId && findUnit(unitId)) || (await getCurrentUnit())
+  if (!unit) return null
   const lessonIndex = await getLessonsCompleted(unit.id)
   if (lessonIndex >= unit.lessonCount) return null
   const content = contentForLesson(unit, lessonIndex)
@@ -339,7 +343,8 @@ export async function buildNextLesson(unitId?: string): Promise<LessonPlan | nul
 export interface TodaySummary {
   reviewsDue: number
   hasLesson: boolean
-  currentUnit: Unit
+  /** `null` once every curriculum unit is complete. */
+  currentUnit: Unit | null
   lessonNumber: number
   totalLessons: number
   newItemsToday: number
@@ -350,13 +355,13 @@ export async function getTodaySummary(): Promise<TodaySummary> {
   const [{ learningDue, reviewDue, introducedTodayCount }, unit, config] = await Promise.all([
     getDueSummary(), getCurrentUnit(), getSchedulerConfig(),
   ])
-  const lessonIndex = await getLessonsCompleted(unit.id)
+  const lessonIndex = unit ? await getLessonsCompleted(unit.id) : 0
   return {
     reviewsDue: learningDue.length + reviewDue.length,
-    hasLesson: lessonIndex < unit.lessonCount,
+    hasLesson: unit ? lessonIndex < unit.lessonCount : false,
     currentUnit: unit,
     lessonNumber: lessonIndex + 1,
-    totalLessons: unit.lessonCount,
+    totalLessons: unit?.lessonCount ?? 0,
     newItemsToday: introducedTodayCount,
     newItemsCap: config.newItemsPerDay,
   }

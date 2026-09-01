@@ -101,7 +101,7 @@ export function LessonPlayer() {
               )}
               {summary.hasLesson && (
                 <p className="text-sm text-[var(--color-ink-muted)]">
-                  Next up: <span className="font-medium text-[var(--color-ink)]">{summary.currentUnit.title}</span> (lesson {summary.lessonNumber} of {summary.totalLessons}).
+                  Next up: <span className="font-medium text-[var(--color-ink)]">{summary.currentUnit!.title}</span> (lesson {summary.lessonNumber} of {summary.totalLessons}).
                 </p>
               )}
               {!summary.hasLesson && summary.reviewsDue === 0 && (

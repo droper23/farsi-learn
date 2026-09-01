@@ -38,8 +38,31 @@ export async function recordReview(
   await db.learningEvents.add({
     key: next.key, kind, itemId, rating, correct, timestamp: now,
   })
+  await trimLearningEvents(now)
   await bumpStreak(now)
   return next
+}
+
+/** `learningEvents` is append-only and otherwise grows forever (see H2 in
+ *  the 2026-09-01 review): every review adds a row, nothing removed them,
+ *  and the whole log is serialized into both the local export/backup and
+ *  the single Firestore doc `uploadProgress` writes — which caps out at
+ *  1 MiB and would silently break cloud sync after roughly 5-10k reviews.
+ *  Keep only recent history; the dashboard's "recent mix-ups" widget only
+ *  ever reads the newest 200 events (see getRecentMistakes). A ranged
+ *  delete on the `timestamp` index is cheap, so this runs on every review. */
+export const LEARNING_EVENT_RETENTION_DAYS = 90
+export const MAX_LEARNING_EVENTS = 2000
+
+async function trimLearningEvents(now: number): Promise<void> {
+  const cutoff = now - LEARNING_EVENT_RETENTION_DAYS * 86_400_000
+  await db.learningEvents.where('timestamp').below(cutoff).delete()
+
+  const count = await db.learningEvents.count()
+  if (count <= MAX_LEARNING_EVENTS) return
+  const excess = count - MAX_LEARNING_EVENTS
+  const oldestKeys = await db.learningEvents.orderBy('timestamp').limit(excess).primaryKeys()
+  await db.learningEvents.bulkDelete(oldestKeys)
 }
 
 async function bumpStreak(now: number) {
