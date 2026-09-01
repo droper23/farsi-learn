@@ -1,10 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, getSettings, updateSettings, type SavedItem } from '../storage/db'
 import { getOrCreateReviewState, suspendItem } from '../storage/progressRepo'
 import { exportBackup, downloadBackup, importBackup, resetAllProgress, BackupImportError } from '../storage/backup'
 import { useAuth } from '../auth/useAuth'
 import { uploadProgress, downloadProgress } from '../auth/sync'
+import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { PageHeader } from '../components/shared/PageHeader'
 import { Card } from '../components/shared/Card'
 import { Button } from '../components/shared/Button'
@@ -31,6 +33,12 @@ export function ProgressSettings() {
 
   const auth = useAuth()
   const [syncing, setSyncing] = useState(false)
+  const install = useInstallPrompt()
+
+  async function handleInstall() {
+    const outcome = await install.promptInstall()
+    if (outcome === 'accepted') setMessage('Installed! Look for Farsi Learn on your home screen or app list.')
+  }
 
   async function handleExport() {
     const payload = await exportBackup()
@@ -52,7 +60,7 @@ export function ProgressSettings() {
     if (customFa.trim() === '' || customEn.trim() === '') return
     const now = Date.now()
     const id = `custom-${now}`
-    await db.savedItems.add({ id, fa: customFa.trim(), translit: customTranslit.trim(), en: customEn.trim(), createdAt: now })
+    await db.savedItems.add({ id, fa: customFa.trim(), translit: customTranslit.trim(), en: customEn.trim(), createdAt: now, updatedAt: now })
     // Custom entries have no vocabId (nothing in the vetted content model to
     // point at), so they get their own 'custom' SRS kind — see
     // exerciseForReviewable in lib/session.ts.
@@ -81,8 +89,12 @@ export function ProgressSettings() {
     if (!auth.user) return
     setSyncing(true)
     try {
-      await uploadProgress(auth.user)
-      setMessage('Uploaded your progress to the cloud.')
+      const summary = await uploadProgress(auth.user)
+      setMessage(
+        summary.reviewStates.fromRemote > 0 || summary.savedItems.fromRemote > 0 || summary.learningEvents.addedFromRemote > 0
+          ? `Synced with the cloud — merged in ${summary.reviewStates.fromRemote + summary.savedItems.fromRemote} newer record(s) from another device.`
+          : 'Synced your progress to the cloud.',
+      )
     } finally {
       setSyncing(false)
     }
@@ -90,11 +102,19 @@ export function ProgressSettings() {
 
   async function handleDownload() {
     if (!auth.user) return
-    if (!confirm('This replaces all progress on this device with your cloud backup. Continue?')) return
     setSyncing(true)
     try {
       const result = await downloadProgress(auth.user)
-      setMessage(result.found ? 'Downloaded progress from the cloud.' : 'No cloud backup found yet — try "Upload" first.')
+      if (!result.found) {
+        setMessage('No cloud backup found yet — try "Upload" first.')
+      } else {
+        const s = result.summary
+        setMessage(
+          s && (s.reviewStates.fromRemote > 0 || s.savedItems.fromRemote > 0 || s.learningEvents.addedFromRemote > 0)
+            ? `Synced with the cloud — merged in ${s.reviewStates.fromRemote + s.savedItems.fromRemote} newer record(s), nothing local was lost.`
+            : 'Synced with the cloud — already up to date.',
+        )
+      }
     } finally {
       setSyncing(false)
     }
@@ -116,6 +136,9 @@ export function ProgressSettings() {
             <Stat label="Review" value={reviewCounts?.review ?? 0} />
             <Stat label="Mastered" value={reviewCounts?.mastered ?? 0} />
           </div>
+          <Link to="/stats" className="mt-3 block text-center text-sm font-medium text-[var(--color-brand)] underline">
+            View detailed stats, letter mastery & milestones →
+          </Link>
         </Card>
 
         {savedItems.length > 0 && (
@@ -183,6 +206,26 @@ export function ProgressSettings() {
 
         <Card>
           <p className="mb-3 text-sm font-medium">Settings</p>
+          <div className="py-2">
+            <span className="mb-2 block text-sm">Appearance</span>
+            <div className="flex gap-2" aria-label="Theme">
+              {(['system', 'light', 'dark'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={(settings?.theme ?? 'system') === t}
+                  onClick={() => updateSettings({ theme: t })}
+                  className={`min-h-11 flex-1 rounded-xl border px-3 py-2 text-sm capitalize ${
+                    (settings?.theme ?? 'system') === t
+                      ? 'border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-strong)]'
+                      : 'border-[var(--color-border)] text-[var(--color-ink-muted)]'
+                  }`}
+                >
+                  {t === 'system' ? 'Auto' : t}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="flex items-center justify-between py-2">
             <span className="text-sm">Show transliteration</span>
             <input
@@ -211,6 +254,25 @@ export function ProgressSettings() {
             />
           </label>
         </Card>
+
+        {(install.canInstall || install.isIOSSafariManual) && (
+          <Card>
+            <p className="mb-1 text-sm font-medium">Install Farsi Learn</p>
+            {install.canInstall && (
+              <>
+                <p className="mb-3 text-xs text-[var(--color-ink-muted)]">
+                  Install it like an app — works offline, opens in its own window, no browser chrome.
+                </p>
+                <Button onClick={handleInstall}>Install app</Button>
+              </>
+            )}
+            {install.isIOSSafariManual && (
+              <p className="text-xs text-[var(--color-ink-muted)]">
+                On iPhone/iPad: tap the Share button in Safari, then "Add to Home Screen".
+              </p>
+            )}
+          </Card>
+        )}
 
         <Card>
           <p className="mb-3 text-sm font-medium">Your data</p>
@@ -245,9 +307,13 @@ export function ProgressSettings() {
           {auth.enabled && auth.user && (
             <div className="flex flex-col gap-2">
               <p className="text-sm">Signed in as {auth.user.displayName ?? auth.user.email}</p>
+              <p className="text-xs text-[var(--color-ink-muted)]">
+                Both buttons merge — the newer version of each record wins on both sides. Nothing is silently
+                overwritten, even if another device made changes since your last sync.
+              </p>
               <div className="flex gap-2">
-                <Button onClick={handleUpload} disabled={syncing} className="flex-1">Upload</Button>
-                <Button onClick={handleDownload} disabled={syncing} variant="secondary" className="flex-1">Download</Button>
+                <Button onClick={handleUpload} disabled={syncing} className="flex-1">Sync (push first)</Button>
+                <Button onClick={handleDownload} disabled={syncing} variant="secondary" className="flex-1">Sync (pull first)</Button>
               </div>
               <Button onClick={auth.signOut} variant="ghost">Sign out</Button>
             </div>

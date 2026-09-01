@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { applyTheme } from './lib/theme'
 import { AppShell } from './components/layout/AppShell'
 import { Onboarding } from './components/onboarding/Onboarding'
 import { Dashboard } from './screens/Dashboard'
@@ -11,6 +13,7 @@ import { AlphabetOverview } from './screens/Alphabet/AlphabetOverview'
 import { AlphabetLetterDetail } from './screens/Alphabet/AlphabetLetterDetail'
 import { Dictionary } from './screens/Dictionary'
 import { ProgressSettings } from './screens/ProgressSettings'
+import { Stats } from './screens/Stats'
 import { NotFound } from './screens/NotFound'
 import { getSettings } from './storage/db'
 
@@ -24,6 +27,13 @@ export default function App() {
   // `onboardingComplete` setting — returning users (already true) skip
   // straight to the router below, exactly as before onboarding existed.
   const settings = useLiveQuery(() => getSettings(), [])
+
+  // Applied as a side effect (not read straight from CSS) so an explicit
+  // in-app choice can override the OS `prefers-color-scheme` — see
+  // lib/theme.ts and index.css's data-theme selectors.
+  useEffect(() => {
+    applyTheme(settings?.theme ?? 'system')
+  }, [settings?.theme])
 
   if (settings === undefined) return null
 
@@ -50,6 +60,7 @@ export default function App() {
           <Route path="alphabet/:letterId" element={<AlphabetLetterDetail />} />
           <Route path="dictionary" element={<Dictionary />} />
           <Route path="progress" element={<ProgressSettings />} />
+          <Route path="stats" element={<Stats />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

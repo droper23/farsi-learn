@@ -14,6 +14,10 @@ export interface SavedItem {
   en: string
   note?: string
   createdAt: number
+  /** Last-modified timestamp, for cloud-sync merging (see
+   *  storage/backup.ts). Falls back to `createdAt` where absent (older
+   *  records/backups predating this field). */
+  updatedAt?: number
 }
 
 /** One row per learning event, for the "recent mistakes" dashboard widget
@@ -44,6 +48,13 @@ export interface SettingsRow {
   longestStreak: number
   lastStudyDay?: string
   onboardingComplete: boolean
+  /** 'system' (default) follows the OS `prefers-color-scheme`; 'light'/
+   *  'dark' is an explicit override — see src/lib/theme.ts. */
+  theme?: 'system' | 'light' | 'dark'
+  /** Set on every settings write; used for last-write-wins cloud-sync
+   *  merging (see storage/backup.ts mergePayloads). Optional so old
+   *  backups/rows without it still import — treated as "very old" (0). */
+  updatedAt?: number
 }
 
 class FarsiLearnDB extends Dexie {
@@ -76,6 +87,7 @@ export const DEFAULT_SETTINGS: SettingsRow = {
   currentStreak: 0,
   longestStreak: 0,
   onboardingComplete: false,
+  theme: 'system',
 }
 
 /** Pure read, safe to call from useLiveQuery — never writes. Falls back to
@@ -95,7 +107,7 @@ export async function ensureSettingsRow(): Promise<void> {
 
 export async function updateSettings(patch: Partial<SettingsRow>): Promise<SettingsRow> {
   const current = await getSettings()
-  const next = { ...current, ...patch }
+  const next = { ...current, ...patch, updatedAt: Date.now() }
   await db.settings.put(next)
   return next
 }
