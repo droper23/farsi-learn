@@ -41,6 +41,25 @@ export default defineConfig({
         // not be force-downloaded into every visitor's offline cache.
         globIgnores: ['**/firebase-*.js'],
         navigateFallback: 'index.html',
+        // Pre-generated pronunciation clips (~500 files, ~7MB — see
+        // scripts/generate_audio.py) are deliberately NOT in globPatterns
+        // above: forcing every visitor to download all of them upfront
+        // would be a heavy, unannounced first-load cost on an otherwise
+        // lightweight app. Instead, cache each clip the first time it's
+        // played, so replays and later offline use are instant/offline —
+        // consistent with the app's "fully offline" design without the
+        // upfront tax.
+        runtimeCaching: [
+          {
+            urlPattern: /\/audio\/.*\.mp3$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pronunciation-audio',
+              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

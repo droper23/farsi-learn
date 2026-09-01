@@ -5,6 +5,9 @@ import { ListeningRunner } from './ListeningRunner'
 import type { ListeningExercise } from '../../lib/exercises/types'
 import { __resetVoiceCacheForTests } from '../../lib/speech'
 
+// 'سلام' is real vocabulary content with a pre-generated audio clip (see
+// scripts/generate_audio.py / audioManifest.ts) — used to exercise the "a
+// clip exists" path regardless of device voice availability.
 const exercise: ListeningExercise = {
   id: 'listen-test-1', kind: 'listening',
   instructions: 'Listen, then choose the meaning',
@@ -14,6 +17,15 @@ const exercise: ListeningExercise = {
   ],
   correctOptionId: 'a',
   hints: [],
+}
+
+// Deliberately not real content, so it has no pre-generated clip — the only
+// way to exercise the genuine "nothing can pronounce this" fallback now
+// that most real content has a bundled audio clip.
+const unpronounceableExercise: ListeningExercise = {
+  ...exercise,
+  id: 'listen-test-2',
+  audioText: 'این متن هرگز به عنوان محتوا تولید نشده است',
 }
 
 function setVoices(voices: Array<{ lang: string }>) {
@@ -31,13 +43,28 @@ afterEach(() => {
 })
 
 describe('ListeningRunner', () => {
-  it('falls back to showing the Persian text + transliteration when no Persian voice is available', () => {
-    setVoices([]) // matches setupTests.ts jsdom default: no voices at all
+  it('falls back to showing the Persian text + transliteration when nothing can pronounce this item', () => {
+    setVoices([]) // no device voice, and this text has no pre-generated clip
+    render(<ListeningRunner exercise={unpronounceableExercise} onComplete={vi.fn()} />)
+
+    expect(screen.getByText(/No pronunciation available for this item/i)).toBeInTheDocument()
+    expect(screen.getByText(unpronounceableExercise.audioText)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Play the Persian audio/i })).not.toBeInTheDocument()
+  })
+
+  it('offers a Play/Replay control using a pre-generated clip even with no device voice', async () => {
+    setVoices([]) // no device voice — the pre-generated clip is what makes this work
+    const user = userEvent.setup()
     render(<ListeningRunner exercise={exercise} onComplete={vi.fn()} />)
 
-    expect(screen.getByText(/No Persian voice found on this device/i)).toBeInTheDocument()
-    expect(screen.getByText('سلام')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Play the Persian audio/i })).not.toBeInTheDocument()
+    expect(screen.queryByText(/No pronunciation available/i)).not.toBeInTheDocument()
+    // The Persian text isn't shown up front — that would defeat a listening
+    // exercise — only after answering.
+    expect(screen.queryByText('سلام')).not.toBeInTheDocument()
+
+    const playButton = screen.getByRole('button', { name: /Play the Persian audio/i })
+    await user.click(playButton)
+    expect(await screen.findByRole('button', { name: /Replay the Persian audio/i })).toBeInTheDocument()
   })
 
   it('offers a Play/Replay control and hides the text up front when a Persian voice is available', async () => {
@@ -45,9 +72,7 @@ describe('ListeningRunner', () => {
     const user = userEvent.setup()
     render(<ListeningRunner exercise={exercise} onComplete={vi.fn()} />)
 
-    expect(screen.queryByText(/No Persian voice found/i)).not.toBeInTheDocument()
-    // The Persian text isn't shown up front — that would defeat a listening
-    // exercise — only after answering.
+    expect(screen.queryByText(/No pronunciation available/i)).not.toBeInTheDocument()
     expect(screen.queryByText('سلام')).not.toBeInTheDocument()
 
     const playButton = screen.getByRole('button', { name: /Play the Persian audio/i })

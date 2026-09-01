@@ -10,6 +10,7 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest",
     "audit:content": "tsx scripts/audit-content.ts",
+    "generate:audio": "tsx scripts/collect-audio-text.ts > scripts/.audio-texts.json && python3 scripts/generate_audio.py",
     "preview": "vite preview"
   },
   "dependencies": {

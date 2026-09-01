@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSettings } from '../../hooks/useSettings'
-import { hasPersianVoice, speakPersian } from '../../lib/speech'
+import { canPronounce, pronouncePersian } from '../../lib/speech'
 
 interface PersianTextProps {
   fa: string
@@ -10,6 +10,11 @@ interface PersianTextProps {
   forceShowTranslit?: boolean
   showSpeak?: boolean
   className?: string
+  /** Text to pronounce instead of `fa`, for cases where the displayed glyph
+   *  isn't itself pronounceable in isolation — e.g. a bare alphabet
+   *  consonant shown as its isolated form, where the letter's *name* (e.g.
+   *  "به" for ب) is what actually has a pronunciation. Defaults to `fa`. */
+  speakText?: string
 }
 
 const sizeClasses: Record<NonNullable<PersianTextProps['size']>, string> = {
@@ -23,10 +28,11 @@ const sizeClasses: Record<NonNullable<PersianTextProps['size']>, string> = {
  *  dir="rtl" with the self-hosted Vazirmatn font, with an optional inline
  *  transliteration line whose visibility follows the user's settings
  *  (learners are meant to eventually turn it off). */
-export function PersianText({ fa, translit, size = 'md', forceShowTranslit, showSpeak, className }: PersianTextProps) {
+export function PersianText({ fa, translit, size = 'md', forceShowTranslit, showSpeak, className, speakText }: PersianTextProps) {
   const settings = useSettings()
   const showTranslit = forceShowTranslit ?? settings.showTransliteration
-  const [voiceAvailable] = useState(() => hasPersianVoice())
+  const textToSpeak = speakText ?? fa
+  const [voiceAvailable] = useState(() => canPronounce(textToSpeak))
 
   return (
     <span className={`inline-flex flex-col items-center gap-1 ${className ?? ''}`}>
@@ -35,9 +41,9 @@ export function PersianText({ fa, translit, size = 'md', forceShowTranslit, show
         {showSpeak && (
           <button
             type="button"
-            onClick={() => speakPersian(fa)}
+            onClick={() => pronouncePersian(textToSpeak)}
             aria-label="Hear an approximate, computer-generated pronunciation"
-            title={voiceAvailable ? 'Approximate pronunciation (computer-generated)' : 'No Persian voice found on this device'}
+            title={voiceAvailable ? 'Approximate pronunciation (computer-generated)' : 'No pronunciation available for this text'}
             className="shrink-0 rounded-full p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] disabled:opacity-30"
             disabled={!voiceAvailable}
           >

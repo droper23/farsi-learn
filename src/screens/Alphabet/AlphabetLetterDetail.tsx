@@ -60,7 +60,7 @@ export function AlphabetLetterDetail() {
       <PageHeader title={`${letter.name} — ${letter.nameFa}`} />
       <div className="flex flex-col gap-4 px-4 pb-8 md:px-0">
         <Card className="flex flex-col items-center gap-4 text-center">
-          <PersianText fa={letter.forms.isolated} translit={letter.transliteration} size="xl" showSpeak />
+          <PersianText fa={letter.forms.isolated} speakText={letter.nameFa} translit={letter.transliteration} size="xl" showSpeak />
           <p className="text-sm">{letter.soundDescription}</p>
           <div className="grid w-full grid-cols-4 gap-2 text-center text-xs text-[var(--color-ink-muted)]">
             <div><bdi lang="fa" dir="rtl" className="fa-text block text-2xl">{letter.forms.isolated}</bdi>Isolated</div>
@@ -87,7 +87,7 @@ export function AlphabetLetterDetail() {
           <div className="flex flex-wrap gap-4">
             {letter.exampleWords.map((w, i) => (
               <div key={i} className="text-center">
-                <PersianText fa={w.fa} translit={w.translit} />
+                <PersianText fa={w.fa} translit={w.translit} showSpeak />
                 <p className="text-xs text-[var(--color-ink-muted)]">{w.en}</p>
               </div>
             ))}

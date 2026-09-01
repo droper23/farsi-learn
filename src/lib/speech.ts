@@ -1,12 +1,19 @@
 /**
- * Best-effort pronunciation via the browser's built-in Web Speech API.
- * This is NOT authoritative audio — voice quality and even availability of
- * a Persian voice varies wildly by OS/browser, and synthesized speech can
- * mispronounce loanwords, homographs, and anything with an unwritten short
- * vowel (which is most Persian words). It is offered as an optional aid,
- * always labeled as computer-generated/approximate in the UI, never
- * presented as a substitute for real recorded audio. See README "Audio".
+ * Pronunciation audio, in priority order:
+ *  1. A pre-generated clip (scripts/generate_audio.py, Microsoft Edge's
+ *     free neural TTS) shipped as a static asset and looked up by exact
+ *     text in `audioManifest` — covers every alphabet/vocabulary/sentence
+ *     string in the app's content, and (unlike option 2) works identically
+ *     on every device, with no dependency on what voices happen to be
+ *     installed locally.
+ *  2. The browser's built-in Web Speech API, for text with no pre-generated
+ *     clip (learner-typed custom saved words, generated exercise text that
+ *     isn't a literal content string). Voice quality/availability varies
+ *     wildly by OS/browser.
+ * Neither is authoritative, native-speaker audio — both are labeled
+ * computer-generated/approximate in the UI. See README "Audio".
  */
+import { audioManifest } from '../content/audioManifest'
 
 export function speechSupported(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -57,4 +64,47 @@ export function speakPersian(text: string) {
   utterance.rate = 0.9
   window.speechSynthesis.cancel()
   window.speechSynthesis.speak(utterance)
+}
+
+/** Resolves a pre-generated audio clip's URL for exact-match text, relative
+ *  to the app's base path (so it works both at the domain root and under a
+ *  GitHub Pages project subpath — see vite.config.ts `base`). */
+export function audioUrlFor(text: string): string | undefined {
+  const path = audioManifest[text]
+  return path ? `${import.meta.env.BASE_URL}${path}` : undefined
+}
+
+const audioElementCache = new Map<string, HTMLAudioElement>()
+
+/** Plays a pre-generated clip if one exists for this exact text. Returns
+ *  whether it found (and started playing) one, so callers can fall back to
+ *  `speakPersian`. Reuses one `<audio>` element per clip so rapid re-taps
+ *  (replay) restart cleanly instead of overlapping. */
+export function playPersianAudio(text: string): boolean {
+  const url = audioUrlFor(text)
+  if (!url) return false
+  let audio = audioElementCache.get(url)
+  if (!audio) {
+    audio = new Audio(url)
+    audioElementCache.set(url, audio)
+  }
+  audio.currentTime = 0
+  // play() returns a Promise in real browsers, but jsdom's stub (used in
+  // tests) returns undefined — guard rather than assume a thenable.
+  audio.play()?.catch(() => {})
+  return true
+}
+
+/** Whether *some* pronunciation source is available for this text — a
+ *  pre-generated clip, or (if not) a device Persian voice. Drives whether
+ *  the UI shows a speak control at all. */
+export function canPronounce(text: string): boolean {
+  return audioUrlFor(text) !== undefined || hasPersianVoice()
+}
+
+/** Plays the best available pronunciation for this text: a pre-generated
+ *  clip first, the Web Speech API otherwise. */
+export function pronouncePersian(text: string): void {
+  if (playPersianAudio(text)) return
+  speakPersian(text)
 }

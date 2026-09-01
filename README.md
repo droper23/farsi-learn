@@ -225,20 +225,45 @@ doesn't configure it.
 
 ## Audio / pronunciation
 
-There is no bundled recorded audio (an AI agent cannot ethically fabricate
-"authoritative" native-speaker recordings). Where a 🔊 button appears, it uses
-the browser's built-in `speechSynthesis` API if a Persian voice is available
-on the device — always labeled as **approximate, computer-generated
-pronunciation**, never presented as authoritative. The architecture
-(`src/lib/speech.ts`) is isolated specifically so real recorded audio files
-could be swapped in later (e.g. `AlphabetLetter.exampleWords[].audioUrl`)
-without touching any UI component.
+There is no recorded native-speaker audio (an AI agent cannot ethically
+fabricate "authoritative" recordings). Instead, every alphabet letter name,
+vocabulary item, and sentence in `src/content/` has a **pre-generated
+pronunciation clip**, synthesized offline with [`edge-tts`](https://github.com/rany2/edge-tts)
+(Microsoft's free, no-API-key neural TTS — the same engine behind Edge's
+"Read aloud") and shipped as a static asset under `public/audio/`. This
+replaced an earlier design that relied solely on the browser's built-in
+`speechSynthesis` API, whose Persian voice availability turned out to be
+inconsistent enough across OS/browser combinations that many learners got no
+audio at all.
+
+Where a 🔊 button appears, `src/lib/speech.ts` `pronouncePersian()` plays the
+pre-generated clip for that exact text if one exists (looked up in the
+generated `src/content/audioManifest.ts`), and falls back to
+`speechSynthesis` only for text with no clip (chiefly learner-typed custom
+saved words). Either way it's always labeled **approximate, computer-generated
+pronunciation**, never presented as authoritative.
 
 The listening-comprehension exercise type (hear a word/sentence, pick its
-meaning) is built on this same synthesized voice and carries the same
-disclosure. On a device with no Persian voice at all, it falls back to
-showing the Persian text and transliteration directly instead of a silent,
-broken "play" button — see `ListeningRunner.tsx` and `hasPersianVoice()`.
+meaning) is built on the same fallback chain and carries the same
+disclosure. If neither a clip nor a device voice is available for an item, it
+falls back to showing the Persian text and transliteration directly instead
+of a silent, broken "play" button — see `ListeningRunner.tsx` and
+`canPronounce()`.
+
+Clips aren't force-downloaded upfront (~500 files, ~7MB) — the service worker
+caches each one the first time it's played (`vite.config.ts` `runtimeCaching`
+for `/audio/*.mp3`, `CacheFirst`), so replays and later offline use are
+instant without an unannounced first-load cost.
+
+**Regenerating audio** after authoring new content:
+
+```sh
+npm run generate:audio   # requires python3 + `pip install -r scripts/requirements.txt`; needs network access
+```
+
+This is idempotent — it only synthesizes text that doesn't already have a
+clip in `public/audio/` — and rewrites `audioManifest.ts` from scratch each
+run, so it stays in sync with whatever content currently exists.
 
 ---
 

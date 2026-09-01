@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ListeningExercise } from '../../lib/exercises/types'
 import { gradeListening } from '../../lib/exercises/grade'
-import { hasPersianVoice, speakPersian } from '../../lib/speech'
+import { canPronounce, pronouncePersian } from '../../lib/speech'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
@@ -11,22 +11,24 @@ interface Props {
   onComplete: (correct: boolean, hintsUsed: number) => void
 }
 
-/** Listening comprehension: play (and replay) the Persian audio via the
- *  browser's speech synthesis, then choose the meaning. If this device has
- *  no Persian voice at all, playing audio would be silent and broken — so
- *  instead of pretending to be an audio exercise, it gracefully falls back
- *  to showing the Persian text + transliteration directly, clearly labeled
- *  as a fallback, rather than being unusable. */
+/** Listening comprehension: play (and replay) the Persian audio — a
+ *  pre-generated clip where one exists, the browser's speech synthesis
+ *  otherwise (see lib/speech.ts `pronouncePersian`) — then choose the
+ *  meaning. If neither source can produce audio for this text, playing
+ *  would be silent and broken — so instead of pretending to be an audio
+ *  exercise, it gracefully falls back to showing the Persian text +
+ *  transliteration directly, clearly labeled as a fallback, rather than
+ *  being unusable. */
 export function ListeningRunner({ exercise, onComplete }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hintsRevealed, setHintsRevealed] = useState(0)
-  const [voiceAvailable] = useState(() => hasPersianVoice())
+  const [voiceAvailable] = useState(() => canPronounce(exercise.audioText))
   const [played, setPlayed] = useState(false)
   const answered = selected !== null
   const correct = selected !== null && gradeListening(exercise, selected)
 
   function play() {
-    speakPersian(exercise.audioText)
+    pronouncePersian(exercise.audioText)
     setPlayed(true)
   }
 
@@ -57,7 +59,7 @@ export function ListeningRunner({ exercise, onComplete }: Props) {
         <div className="flex flex-col items-center gap-2 py-2">
           <PersianText fa={exercise.audioText} translit={exercise.audioTranslit} size="xl" forceShowTranslit />
           <p className="text-xs text-[var(--color-ink-muted)]">
-            No Persian voice found on this device — showing the text instead of audio.
+            No pronunciation available for this item — showing the text instead of audio.
           </p>
         </div>
       )}
