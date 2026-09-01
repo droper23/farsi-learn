@@ -25,7 +25,11 @@ const TOTAL_STEPS = 4
  *  not to read about the app. */
 export function Onboarding({ onFinish }: Props) {
   const [step, setStep] = useState(0)
-  const [goal, setGoal] = useState(15)
+  // Defaults to "Steady" (10/day), not the more aggressive "Focused" (15/day)
+  // — a brand-new learner who hasn't finished a single lesson yet shouldn't
+  // be pre-committed to the second-most-aggressive daily goal; overcommitting
+  // on day one is a classic churn trap. See Pass 4 UX review.
+  const [goal, setGoal] = useState(10)
   const [showTranslit, setShowTranslit] = useState(true)
   const [saving, setSaving] = useState(false)
 

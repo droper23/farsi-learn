@@ -104,7 +104,7 @@ export function Dictionary() {
         <button
           onClick={() => toggleSave(v.id, v.fa, v.translit, v.en)}
           aria-label={savedIds.has(v.id) ? `Remove "${v.en}" from saved words` : `Save "${v.en}"`}
-          className={`shrink-0 min-h-11 min-w-11 rounded-full p-2 text-xl ${savedIds.has(v.id) ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`}
+          className={`flex shrink-0 min-h-12 min-w-12 items-center justify-center rounded-full p-3 text-xl ${savedIds.has(v.id) ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'}`}
         >
           {savedIds.has(v.id) ? '★' : '☆'}
         </button>
@@ -195,7 +195,7 @@ export function Dictionary() {
         {mode === 'browse' && (
           <>
             {!category && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {categories.map(({ category: c, count }) => (
                   <button
                     key={c}

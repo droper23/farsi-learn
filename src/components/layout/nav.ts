@@ -9,5 +9,8 @@ export const navItems: NavItem[] = [
   { to: '/learn', label: 'Learn', icon: 'learn' },
   { to: '/review', label: 'Review', icon: 'review' },
   { to: '/dictionary', label: 'Dictionary', icon: 'dictionary' },
-  { to: '/progress', label: 'Progress', icon: 'progress' },
+  // Labeled "Profile" rather than "Progress" — this one screen holds stats,
+  // custom saved words, app settings, data export/import, and cloud sync,
+  // which "Progress" alone undersells. See Pass 4 UX review.
+  { to: '/progress', label: 'Profile', icon: 'progress' },
 ]

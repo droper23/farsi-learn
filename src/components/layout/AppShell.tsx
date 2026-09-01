@@ -1,8 +1,20 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { navItems } from './nav'
 import { NavIcon } from './NavIcon'
 
+/** Routes for a focused, single-task session — the in-lesson/in-review
+ *  progress bar and exit control (✕) already give a clear way out, so the
+ *  bottom tab bar would just be a second, competing navigation system on
+ *  screen at the same time. Hidden on mobile only; the desktop sidebar
+ *  doesn't have the same overlap problem. */
+function isFocusedSessionPath(pathname: string): boolean {
+  return pathname.startsWith('/lesson') || pathname === '/review' || pathname.startsWith('/focused')
+}
+
 export function AppShell() {
+  const location = useLocation()
+  const hideMobileNav = isFocusedSessionPath(location.pathname)
+
   return (
     <div className="mx-auto flex min-h-dvh max-w-6xl md:gap-6 md:px-6">
       <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col gap-1 border-r border-[var(--color-border)] py-6 pe-3 md:flex">
@@ -27,28 +39,34 @@ export function AppShell() {
         ))}
       </aside>
 
-      <main className="min-h-dvh w-full flex-1 pb-24 md:pb-6">
+      <main className={`min-h-dvh w-full flex-1 md:pb-6 ${hideMobileNav ? 'pb-6' : 'pb-24'}`}>
         <div className="safe-top" />
-        <Outlet />
+        {/* Caps content width on wide desktop viewports so cards/buttons
+            don't stretch full-bleed at e.g. 1440px — see Pass 4 UX review. */}
+        <div className="mx-auto w-full max-w-2xl">
+          <Outlet />
+        </div>
       </main>
 
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-20 flex border-t border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur md:hidden">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            className={({ isActive }) =>
-              `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-medium ${
-                isActive ? 'text-[var(--color-brand)]' : 'text-[var(--color-ink-muted)]'
-              }`
-            }
-          >
-            <NavIcon icon={item.icon} />
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
+      {!hideMobileNav && (
+        <nav className="safe-bottom fixed inset-x-0 bottom-0 z-20 flex border-t border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur md:hidden">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) =>
+                `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-medium ${
+                  isActive ? 'text-[var(--color-brand)]' : 'text-[var(--color-ink-muted)]'
+                }`
+              }
+            >
+              <NavIcon icon={item.icon} />
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   )
 }

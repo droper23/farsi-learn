@@ -19,13 +19,14 @@ export function UnitDetail() {
   const state = useAsyncData(async () => {
     if (!unit) return null
     const [current, completed] = await Promise.all([getCurrentUnit(), getLessonsCompleted(unit.id)])
-    return { isCurrent: current.id === unit.id, completed }
+    return { isCurrent: current.id === unit.id, completed, currentUnit: current }
   }, [unit?.id])
 
   if (!unit) return <PageHeader title="Unit not found" />
 
   const isDone = (state.data?.completed ?? 0) >= unit.lessonCount
   const isCurrent = state.data?.isCurrent ?? false
+  const currentUnit = state.data?.currentUnit
 
   return (
     <div>
@@ -36,9 +37,20 @@ export function UnitDetail() {
           <div className="mt-3">
             {isCurrent && <Button onClick={() => navigate('/lesson')} fullWidth>Start next lesson</Button>}
             {!isCurrent && isDone && <p className="text-sm text-[var(--color-good)]">Unit complete — its items stay in your review queue.</p>}
-            {!isCurrent && !isDone && <p className="text-sm text-[var(--color-ink-muted)]">Finish earlier units first — this one previews below.</p>}
+            {!isCurrent && !isDone && (
+              <p className="text-sm text-[var(--color-ink-muted)]">Finish earlier units first — this one previews below.</p>
+            )}
           </div>
         </Card>
+
+        {!isCurrent && !isDone && currentUnit && (
+          <Card className="flex flex-col gap-2 bg-[var(--color-brand-soft)]">
+            <p className="text-sm font-medium text-[var(--color-brand-strong)]">Your current unit</p>
+            <p className="font-medium">{currentUnit.title}</p>
+            <p className="text-sm text-[var(--color-ink-muted)]">{currentUnit.description}</p>
+            <Button onClick={() => navigate('/lesson')} fullWidth>Continue "{currentUnit.title}"</Button>
+          </Card>
+        )}
 
         {(unit.alphabetIds?.length ?? 0) > 0 && (
           <Card>

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { buildNextLesson, markLessonComplete } from '../lib/session'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { buildNextLesson, markLessonComplete, getTodaySummary } from '../lib/session'
 import { recordReview } from '../storage/progressRepo'
 import { ratingFor } from '../lib/exercises/grade'
+import { getSettings } from '../storage/db'
 import { useAsyncData } from '../hooks/useAsyncData'
 import { PageHeader } from '../components/shared/PageHeader'
 import { ProgressBar } from '../components/shared/ProgressBar'
@@ -18,12 +20,21 @@ export function LessonPlayer() {
   const [finished, setFinished] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
   const [exerciseCount, setExerciseCount] = useState(0)
+  const [finishedAt, setFinishedAt] = useState(0)
+  // Settings (streak) update live via Dexie's liveQuery regardless. The
+  // "what's next" summary is a one-shot async fetch, so it's re-run once the
+  // lesson actually finishes (finishedAt bump) to reflect post-lesson state
+  // (freshly-taught items now due, streak just bumped) instead of a stale
+  // snapshot from before the lesson started.
+  const settings = useLiveQuery(() => getSettings(), [])
+  const nextSummary = useAsyncData(() => getTodaySummary(), [finishedAt])
 
   async function advance() {
     if (!plan.data) return
     if (stepIndex + 1 >= plan.data.steps.length) {
       await markLessonComplete(plan.data.unit.id)
       setFinished(true)
+      setFinishedAt((t) => t + 1)
     } else {
       setStepIndex((i) => i + 1)
     }
@@ -53,6 +64,8 @@ export function LessonPlayer() {
   }
 
   if (finished) {
+    const streak = settings?.currentStreak ?? 0
+    const summary = nextSummary.data
     return (
       <div>
         <PageHeader title="Lesson complete!" subtitle={plan.data.unit.title} />
@@ -63,6 +76,39 @@ export function LessonPlayer() {
             </p>
             <p className="text-sm text-[var(--color-ink-muted)]">{correctCount} of {exerciseCount} correct on the first try</p>
           </Card>
+
+          {streak > 0 && (
+            <Card className="flex items-center gap-3">
+              <span className="text-2xl" aria-hidden="true">🔥</span>
+              <div>
+                <p className="text-sm font-medium">{streak}-day streak</p>
+                <p className="text-xs text-[var(--color-ink-muted)]">Keep it going — come back tomorrow.</p>
+              </div>
+            </Card>
+          )}
+
+          {summary && (
+            <Card className="flex flex-col gap-2">
+              <p className="text-sm font-medium">What's next</p>
+              {summary.reviewsDue > 0 && (
+                <p className="text-sm text-[var(--color-ink-muted)]">
+                  {summary.reviewsDue} review{summary.reviewsDue === 1 ? '' : 's'} due, including what you just learned.
+                </p>
+              )}
+              {summary.hasLesson && (
+                <p className="text-sm text-[var(--color-ink-muted)]">
+                  Next up: <span className="font-medium text-[var(--color-ink)]">{summary.currentUnit.title}</span> (lesson {summary.lessonNumber} of {summary.totalLessons}).
+                </p>
+              )}
+              {!summary.hasLesson && summary.reviewsDue === 0 && (
+                <p className="text-sm text-[var(--color-ink-muted)]">You're all caught up for now.</p>
+              )}
+              {summary.reviewsDue > 0 && (
+                <Button variant="secondary" onClick={() => navigate('/review')} fullWidth>Review now ({summary.reviewsDue})</Button>
+              )}
+            </Card>
+          )}
+
           <Button onClick={() => navigate('/')} fullWidth>Back to home</Button>
         </div>
       </div>
