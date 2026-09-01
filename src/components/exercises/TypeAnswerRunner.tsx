@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { TypeAnswerExercise } from '../../lib/exercises/types'
 import { gradeTypeAnswer } from '../../lib/exercises/grade'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
+import { PersianKeyboard } from './PersianKeyboard'
 
 interface Props {
   exercise: TypeAnswerExercise
@@ -14,12 +15,52 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
   const [value, setValue] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [hintsRevealed, setHintsRevealed] = useState(0)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const correct = submitted && gradeTypeAnswer(exercise, value)
 
   function submit() {
     if (value.trim() === '' || submitted) return
     setSubmitted(true)
+  }
+
+  /** Inserts text at the input's current cursor position (not always the
+   *  end), so the on-screen Persian keyboard composes naturally with a
+   *  learner who's also typing/editing with a real keyboard. Falls back to
+   *  appending at the end when there's no known cursor position yet. */
+  function insertAtCursor(text: string) {
+    if (submitted) return
+    const el = inputRef.current
+    const start = el?.selectionStart ?? value.length
+    const end = el?.selectionEnd ?? value.length
+    const next = value.slice(0, start) + text + value.slice(end)
+    setValue(next)
+    const pos = start + text.length
+    requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(pos, pos) })
+  }
+
+  function backspaceAtCursor() {
+    if (submitted) return
+    const el = inputRef.current
+    const start = el?.selectionStart ?? value.length
+    const end = el?.selectionEnd ?? value.length
+    if (start === end) {
+      if (start === 0) return
+      const next = value.slice(0, start - 1) + value.slice(end)
+      setValue(next)
+      const pos = start - 1
+      requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(pos, pos) })
+    } else {
+      const next = value.slice(0, start) + value.slice(end)
+      setValue(next)
+      requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(start, start) })
+    }
+  }
+
+  function clearAnswer() {
+    if (submitted) return
+    setValue('')
+    requestAnimationFrame(() => inputRef.current?.focus())
   }
 
   return (
@@ -31,6 +72,7 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
       </div>
 
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -38,6 +80,7 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
         disabled={submitted}
         dir={exercise.answerLang === 'fa' ? 'rtl' : 'ltr'}
         lang={exercise.answerLang}
+        aria-label={exercise.answerLang === 'fa' ? 'Type your answer in Persian' : 'Type your answer in English'}
         placeholder={exercise.answerLang === 'fa' ? 'بنویسید...' : 'Type your answer...'}
         className={`min-h-14 rounded-2xl border-2 px-4 py-3 text-lg outline-none ${
           submitted
@@ -49,6 +92,10 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
         autoCorrect="off"
         spellCheck={false}
       />
+
+      {!submitted && exercise.answerLang === 'fa' && (
+        <PersianKeyboard onInsert={insertAtCursor} onBackspace={backspaceAtCursor} onClear={clearAnswer} />
+      )}
 
       {!submitted && (
         <>
