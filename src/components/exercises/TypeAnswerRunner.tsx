@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { TypeAnswerExercise } from '../../lib/exercises/types'
 import { gradeTypeAnswer } from '../../lib/exercises/grade'
 import { PersianText } from '../shared/PersianText'
@@ -16,6 +16,27 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
   const [submitted, setSubmitted] = useState(false)
   const [hintsRevealed, setHintsRevealed] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  // Cursor position to restore after the next render whose `value` reflects
+  // a keyboard-driven edit. A controlled <input>'s DOM value only updates
+  // once React commits the re-render, so restoring selection has to happen
+  // in a layout effect keyed off `value` — not immediately in the click
+  // handler (the DOM text is still stale then) and not via
+  // requestAnimationFrame (fires on the next paint, which races with
+  // whatever the *next* click does in fast succession — a real source of
+  // flakiness under rapid input, automated or otherwise).
+  const [pendingCursor, setPendingCursor] = useState<number | null>(null)
+
+  useLayoutEffect(() => {
+    if (pendingCursor === null) return
+    inputRef.current?.focus()
+    inputRef.current?.setSelectionRange(pendingCursor, pendingCursor)
+    // Resetting the "consumed" trigger back to null is the standard way to
+    // synchronize an imperative DOM action (restoring cursor position) with
+    // an external system (the input element) — not state derived from
+    // props/state that belongs in render.
+    // oxlint-disable-next-line react/set-state-in-effect
+    setPendingCursor(null)
+  }, [value, pendingCursor])
 
   const correct = submitted && gradeTypeAnswer(exercise, value)
 
@@ -33,10 +54,8 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
     const el = inputRef.current
     const start = el?.selectionStart ?? value.length
     const end = el?.selectionEnd ?? value.length
-    const next = value.slice(0, start) + text + value.slice(end)
-    setValue(next)
-    const pos = start + text.length
-    requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(pos, pos) })
+    setValue(value.slice(0, start) + text + value.slice(end))
+    setPendingCursor(start + text.length)
   }
 
   function backspaceAtCursor() {
@@ -46,21 +65,18 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
     const end = el?.selectionEnd ?? value.length
     if (start === end) {
       if (start === 0) return
-      const next = value.slice(0, start - 1) + value.slice(end)
-      setValue(next)
-      const pos = start - 1
-      requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(pos, pos) })
+      setValue(value.slice(0, start - 1) + value.slice(end))
+      setPendingCursor(start - 1)
     } else {
-      const next = value.slice(0, start) + value.slice(end)
-      setValue(next)
-      requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(start, start) })
+      setValue(value.slice(0, start) + value.slice(end))
+      setPendingCursor(start)
     }
   }
 
   function clearAnswer() {
     if (submitted) return
     setValue('')
-    requestAnimationFrame(() => inputRef.current?.focus())
+    setPendingCursor(0)
   }
 
   return (
