@@ -62,6 +62,27 @@ describe('App smoke test', () => {
     expect(await screen.findByText('hello / hi')).toBeInTheDocument()
   })
 
+  it('can browse the dictionary by category and save a word from the list', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    window.location.hash = '#/dictionary'
+    await user.click(await screen.findByRole('tab', { name: /Browse by category/i }))
+    const greetingsButton = await screen.findByRole('button', { name: /Greetings/i })
+    await user.click(greetingsButton)
+    const saveButtons = await screen.findAllByRole('button', { name: /^Save "/i })
+    expect(saveButtons.length).toBeGreaterThan(0)
+    await user.click(saveButtons[0])
+    expect(await screen.findAllByRole('button', { name: /^Remove "/i })).not.toHaveLength(0)
+  })
+
+  it('shows a goal-aware daily plan on the dashboard', async () => {
+    render(<App />)
+    expect(await screen.findByText(/Today's plan/i)).toBeInTheDocument()
+    // A brand-new (post-onboarding) account with no reviews due and a
+    // lesson available should recommend starting with the lesson.
+    expect(await screen.findByText(/Start with a lesson/i)).toBeInTheDocument()
+  })
+
   it('completes a full lesson end to end from the dashboard', async () => {
     const user = userEvent.setup()
     render(<App />)

@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { axe } from 'vitest-axe'
 import App from './App'
 import { db, DEFAULT_SETTINGS } from './storage/db'
@@ -8,6 +9,8 @@ import { PersianKeyboard } from './components/exercises/PersianKeyboard'
 import { McqRunner } from './components/exercises/McqRunner'
 import { generateVocabMcq } from './lib/exercises/generator'
 import { vocabulary } from './content/vocabulary'
+import { Dictionary } from './screens/Dictionary'
+import { Stats } from './screens/Stats'
 
 /**
  * A small automated accessibility pass (axe-core via vitest-axe), run
@@ -51,6 +54,22 @@ describe('accessibility', () => {
     const item = vocabulary.find((v) => v.id === 'greet-salam')!
     const exercise = generateVocabMcq(item, 'fa-en')
     const { container } = render(<McqRunner exercise={exercise} onComplete={() => {}} />)
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('the dictionary browse-by-category view has no obvious axe violations', async () => {
+    const { container } = render(<MemoryRouter><Dictionary /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('tab', { name: /Browse by category/i }))
+    // Drill into a category so a populated word list (with save/queue
+    // badges) is what actually gets audited, not just the category grid.
+    const categoryButtons = await screen.findAllByRole('button')
+    fireEvent.click(categoryButtons[0])
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('the stats/mastery screen has no obvious axe violations', async () => {
+    const { container } = render(<MemoryRouter><Stats /></MemoryRouter>)
+    await screen.findByRole('heading', { name: /Stats & Mastery/i })
     expect(await axe(container)).toHaveNoViolations()
   })
 })
