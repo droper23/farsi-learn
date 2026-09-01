@@ -5,8 +5,10 @@ import { sentences } from '../../content/sentences'
 import {
   generateVocabMcq, generateVocabTypeAnswer, generateLetterSoundMcq,
   generateLetterPositionMcq, generateSentenceWordOrder, generateSentenceFillBlank,
+  generateVocabListening, generateSentenceListening, generateCustomMcq, generateCustomTypeAnswer,
 } from './generator'
-import { gradeMcq, gradeTypeAnswer, gradeWordOrder, ratingFor } from './grade'
+import { gradeMcq, gradeTypeAnswer, gradeWordOrder, gradeListening, ratingFor } from './grade'
+import type { CustomReviewableSource } from './types'
 
 const sampleVocab = vocabulary.find((v) => v.id === 'greet-salam')!
 const sampleLetter = alphabet.find((l) => l.id === 'be')!
@@ -64,6 +66,45 @@ describe('sentence exercises', () => {
     if (ex) {
       expect(ex.options.some((o) => o.id === ex.correctOptionId)).toBe(true)
     }
+  })
+})
+
+describe('listening exercises', () => {
+  it('vocab listening has one correct option among 4 distinct options and is gradable', () => {
+    const ex = generateVocabListening(sampleVocab)
+    expect(ex.audioText).toBe(sampleVocab.fa)
+    expect(ex.options.length).toBe(4)
+    expect(new Set(ex.options.map((o) => o.id)).size).toBe(4)
+    expect(gradeListening(ex, ex.correctOptionId)).toBe(true)
+    expect(gradeListening(ex, 'not-a-real-id')).toBe(false)
+  })
+
+  it('sentence listening picks distractors that are not the correct sentence', () => {
+    const ex = generateSentenceListening(sampleSentence, sentences)
+    expect(ex.audioText).toBe(sampleSentence.fa)
+    expect(ex.options.some((o) => o.id === sampleSentence.id)).toBe(true)
+    expect(gradeListening(ex, sampleSentence.id)).toBe(true)
+  })
+})
+
+describe('custom (learner-authored saved word) exercises', () => {
+  const customItem: CustomReviewableSource = { id: 'custom-1', fa: 'قلم', translit: 'ghalam', en: 'pen' }
+
+  it('mcq is gradable and distractors come from the vocabulary pool', () => {
+    const ex = generateCustomMcq(customItem, 'fa-en')
+    expect(ex.reviewable).toEqual({ kind: 'custom', itemId: 'custom-1' })
+    expect(ex.options.length).toBe(4)
+    expect(ex.options.some((o) => o.id === customItem.id && o.en === customItem.en)).toBe(true)
+    expect(gradeMcq(ex, customItem.id)).toBe(true)
+  })
+
+  it('type-answer fa->en and en->fa both grade the exact custom answer correctly', () => {
+    const faToEn = generateCustomTypeAnswer(customItem, 'fa-en')
+    expect(gradeTypeAnswer(faToEn, customItem.en)).toBe(true)
+    expect(gradeTypeAnswer(faToEn, 'totally wrong')).toBe(false)
+
+    const enToFa = generateCustomTypeAnswer(customItem, 'en-fa')
+    expect(gradeTypeAnswer(enToFa, customItem.fa)).toBe(true)
   })
 })
 

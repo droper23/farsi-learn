@@ -16,3 +16,13 @@ if (!('speechSynthesis' in window)) {
     writable: true,
   })
 }
+if (!('SpeechSynthesisUtterance' in window)) {
+  // @ts-expect-error -- minimal jsdom stub, not a full SpeechSynthesisUtterance implementation
+  window.SpeechSynthesisUtterance = class {
+    text: string
+    voice: unknown
+    lang = ''
+    rate = 1
+    constructor(text: string) { this.text = text }
+  }
+}

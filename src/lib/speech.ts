@@ -26,6 +26,16 @@ export function hasPersianVoice(): boolean {
   return findPersianVoice() !== null
 }
 
+/** Test-only: clears the module-level voice cache so hasPersianVoice()
+ *  re-checks window.speechSynthesis.getVoices() on the next call. Real app
+ *  code never needs this (see primeVoices for the real-world equivalent,
+ *  driven by the 'voiceschanged' event) — it exists so tests can simulate
+ *  both a with-voice and a no-voice device without stale caching between
+ *  cases. */
+export function __resetVoiceCacheForTests() {
+  cachedVoice = undefined
+}
+
 /** Refreshes the voice cache once the async voiceschanged event fires
  *  (many browsers load voices asynchronously after page load). */
 export function primeVoices(onReady?: () => void) {
