@@ -45,6 +45,15 @@ export default defineConfig({
     }),
   ],
   build: {
+    modulePreload: {
+      // Vite's default modulepreload injection would otherwise <link
+      // modulepreload> the firebase chunk on every page load just because
+      // it's *reachable* via dynamic import() — silently forcing the
+      // ~700KB optional cloud-sync SDK to download for every visitor even
+      // when cloud sync is never configured or used. Exclude it so it's
+      // only fetched at the moment code actually calls import('firebase/*').
+      resolveDependencies: (_url, deps) => deps.filter((dep) => !dep.includes('firebase')),
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
