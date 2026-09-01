@@ -2,7 +2,7 @@ import type { VocabItem } from '../types'
 
 export const questionWordsVocab: VocabItem[] = [
   { id: 'q-chi', fa: 'چی', translit: 'chi', en: 'what', pos: 'question-word', category: 'question-words', register: 'colloquial', frequency: 1, level: 1, altEn: ['چه (che) is the formal/written equivalent, used before a noun: چه کتابی "what book".'], confidence: 'high-confidence' },
-  { id: 'q-ki-who', fa: 'کی', translit: 'ki', en: 'who', pos: 'question-word', category: 'question-words', register: 'neutral', frequency: 1, level: 1, notes: 'Careful: کی also means "when" — context (or stress) tells them apart; چه کسی (che kasi) is the unambiguous formal "who".', confidence: 'needs-review' },
+  { id: 'q-ki-who', fa: 'کی', translit: 'ki', en: 'who', pos: 'question-word', category: 'question-words', register: 'neutral', frequency: 1, level: 1, notes: 'Careful: کی also means "when" — context (or stress) tells them apart; چه کسی (che kasi) is the unambiguous formal "who".', note: 'کی also means "when" — worth a native check on how real speakers actually disambiguate the two in practice (stress pattern vs. context alone).', confidence: 'needs-review' },
   { id: 'q-koja', fa: 'کجا', translit: 'kojā', en: 'where', pos: 'question-word', category: 'question-words', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
   { id: 'q-chera', fa: 'چرا', translit: 'cherā', en: 'why', pos: 'question-word', category: 'question-words', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
   { id: 'q-chetor', fa: 'چطور', translit: 'chetor', en: 'how', pos: 'question-word', category: 'question-words', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },

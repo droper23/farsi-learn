@@ -228,6 +228,7 @@ export const grammarConcepts: GrammarConcept[] = [
     exampleSentenceIds: ['s-reported-speech'],
     relatedConceptIds: ['g-simple-past'],
     commonMistake: 'Backshifting the tense the way English does ("he said he was coming" instead of "is coming").',
+    note: 'The tense-keeping claim (no backshift, unlike English) is worth confirming across a wider range of reporting contexts and tenses than the single example sentence here covers.',
     confidence: 'needs-review',
   },
   {
@@ -259,6 +260,7 @@ export const grammarConcepts: GrammarConcept[] = [
     ],
     exampleSentenceIds: ['s-future-colloquial', 's-colloquial-mikham'],
     relatedConceptIds: ['g-register'],
+    note: 'General colloquial-register claims covering several common contractions at once — worth a native speaker spot-checking that each pairing (formal -> colloquial) is the one most Persian speakers would actually produce.',
     confidence: 'needs-review',
   },
   {

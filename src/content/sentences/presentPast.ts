@@ -157,6 +157,7 @@ export const pastTenseSentences: ExampleSentence[] = [
       { fa: 'پیشت', translit: 'pishet', en: 'to your place' },
     ],
     grammarConceptIds: ['g-future', 'g-colloquial-contractions'], vocabIds: ['time-farda', 'verb-amadan'],
+    note: 'Colloquial construction (میام for می‌آیم, پیشت for پیش تو) — worth a native speaker spot-checking spelling and how natural this exact phrasing sounds.',
     confidence: 'needs-review',
   },
 ]

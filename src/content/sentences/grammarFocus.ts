@@ -123,7 +123,9 @@ export const grammarFocusSentences: ExampleSentence[] = [
       { fa: 'فردا می‌آید', translit: 'fardā miāyad', en: 'tomorrow he/she comes' },
     ],
     grammarConceptIds: ['g-reported-speech'], vocabIds: ['pron-oo', 'verb-goftan', 'conn-ke'],
-    notes: 'Unlike English, Persian reported speech usually keeps the original tense (no "backshift" to "was coming").', confidence: 'needs-review',
+    notes: 'Unlike English, Persian reported speech usually keeps the original tense (no "backshift" to "was coming").',
+    note: 'Same tense-keeping claim as g-reported-speech, at the example-sentence level — worth confirming across more contexts than this one sentence.',
+    confidence: 'needs-review',
   },
   {
     id: 's-imperative-negative', fa: 'اینجا سیگار نکش!', translit: 'injā sigār nakesh!', en: "Don't smoke here!", register: 'colloquial', level: 2,
