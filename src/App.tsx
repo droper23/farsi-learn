@@ -9,6 +9,7 @@ import { LessonMap } from './screens/LessonMap'
 import { UnitDetail } from './screens/UnitDetail'
 import { LessonPlayer } from './screens/LessonPlayer'
 import { ReviewSession } from './screens/ReviewSession'
+import { FocusedSession } from './screens/FocusedSession'
 import { AlphabetOverview } from './screens/Alphabet/AlphabetOverview'
 import { AlphabetLetterDetail } from './screens/Alphabet/AlphabetLetterDetail'
 import { Dictionary } from './screens/Dictionary'
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="learn/:unitId" element={<UnitDetail />} />
           <Route path="lesson" element={<LessonPlayer />} />
           <Route path="review" element={<ReviewSession />} />
+          <Route path="focused" element={<FocusedSession />} />
           <Route path="alphabet" element={<AlphabetOverview />} />
           <Route path="alphabet/:letterId" element={<AlphabetLetterDetail />} />
           <Route path="dictionary" element={<Dictionary />} />

@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, getSettings } from '../storage/db'
 import { vocabulary } from '../content/vocabulary'
@@ -11,8 +13,11 @@ import {
 import { computeMilestones } from '../lib/milestones'
 import { PageHeader } from '../components/shared/PageHeader'
 import { Card } from '../components/shared/Card'
+import { Button } from '../components/shared/Button'
 
 export function Stats() {
+  const navigate = useNavigate()
+  const [showAllCategories, setShowAllCategories] = useState(false)
   const reviewStates = useLiveQuery(() => db.reviewStates.toArray(), []) ?? []
   const unitProgress = useLiveQuery(() => db.unitProgress.toArray(), []) ?? []
   const learningEvents = useLiveQuery(() => db.learningEvents.toArray(), []) ?? []
@@ -20,8 +25,20 @@ export function Stats() {
 
   if (!settings) return <PageHeader title="Loading stats..." />
 
-  const categories = categoryProgress(vocabulary, reviewStates)
+  // Started categories first (most relevant to a learner mid-curriculum),
+  // then untouched ones — collapsed behind a toggle by default so a newer
+  // learner isn't forced to scroll past ~20 zero-progress rows to see the
+  // milestones card below. See Pass 4 UX review.
+  const allCategories = categoryProgress(vocabulary, reviewStates)
+  const startedCategories = allCategories.filter((c) => c.introduced > 0)
+  const untouchedCategories = allCategories.filter((c) => c.introduced === 0)
+  const categories = showAllCategories ? [...startedCategories, ...untouchedCategories] : startedCategories
   const letters = letterMastery(alphabet, reviewStates)
+  // "Weak spots" mirrors the buildFocusedSession('weak') criteria in
+  // lib/session.ts (lapsed at least once, or currently relearning) — kept
+  // as a simple count here since the button just needs to know whether
+  // there's anything to practice, not the exact set.
+  const weakCount = reviewStates.filter((s) => !s.suspended && (s.lapseCount > 0 || s.state === 'relearning')).length
   const now = new Date()
   const studiedDays = studiedDaysInMonth(learningEvents.map((e) => e.timestamp), now)
   const monthDays = daysInMonth(now)
@@ -89,6 +106,18 @@ export function Stats() {
           </div>
         </Card>
 
+        {weakCount > 0 && (
+          <Card className="flex flex-col gap-2 bg-[var(--color-warn-soft)]">
+            <p className="text-sm font-medium">Weak spots</p>
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              {weakCount} item{weakCount === 1 ? '' : 's'} you've stumbled on before — practice these now, outside your regular due schedule.
+            </p>
+            <Button onClick={() => navigate('/focused', { state: { filterBy: 'weak' } })} fullWidth>
+              Practice weak spots ({weakCount})
+            </Button>
+          </Card>
+        )}
+
         <Card>
           <p className="mb-3 text-sm font-medium">Progress by category</p>
           <div className="flex flex-col gap-2">
@@ -107,6 +136,17 @@ export function Stats() {
               </div>
             ))}
           </div>
+          {untouchedCategories.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAllCategories((v) => !v)}
+              className="mt-3 min-h-11 w-full text-center text-sm font-medium text-[var(--color-brand)]"
+            >
+              {showAllCategories
+                ? 'Show only started categories'
+                : `Show all categories (${untouchedCategories.length} not started)`}
+            </button>
+          )}
         </Card>
 
         <Card>

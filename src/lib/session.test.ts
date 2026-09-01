@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../storage/db'
 import { getOrCreateReviewState } from '../storage/progressRepo'
-import { buildNextLesson, exerciseForReviewable } from './session'
+import { buildNextLesson, buildFocusedSession, exerciseForReviewable } from './session'
+import type { ReviewState } from '../srs/types'
 
 beforeEach(async () => {
   await Promise.all([
@@ -66,5 +67,70 @@ describe('full SRS integration for saved words (custom entries)', () => {
   it('returns null for a custom id with no matching saved item (deleted/unknown)', async () => {
     const ex = await exerciseForReviewable('custom', 'does-not-exist', 'standard')
     expect(ex).toBeNull()
+  })
+})
+
+describe('buildFocusedSession', () => {
+  const FAR_FUTURE = Date.now() + 1000 * 60 * 60 * 24 * 30 // 30 days out — deliberately NOT due
+
+  function reviewState(overrides: Partial<ReviewState> & Pick<ReviewState, 'key' | 'kind' | 'itemId'>): ReviewState {
+    const now = Date.now()
+    return {
+      state: 'review', dueAt: FAR_FUTURE, intervalDays: 30, easeFactor: 2.5,
+      reviewCount: 3, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now,
+      ...overrides,
+    }
+  }
+
+  it('"weak" ignores due dates entirely and only returns items that have lapsed, are relearning, or have a below-default ease', async () => {
+    await db.reviewStates.bulkPut([
+      reviewState({ key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', lapseCount: 2 }),
+      reviewState({ key: 'vocab:greet-khodahafez', kind: 'vocab', itemId: 'greet-khodahafez', easeFactor: 1.9 }),
+      reviewState({ key: 'vocab:num-1', kind: 'vocab', itemId: 'num-1' }), // healthy — not weak
+    ])
+
+    const exercises = await buildFocusedSession({ filterBy: 'weak' })
+    const itemIds = exercises.map((e) => e.reviewable?.itemId)
+    expect(itemIds).toContain('greet-salam')
+    expect(itemIds).toContain('greet-khodahafez')
+    expect(itemIds).not.toContain('num-1')
+  })
+
+  it('"weak" orders the most-lapsed items first', async () => {
+    await db.reviewStates.bulkPut([
+      reviewState({ key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', lapseCount: 1 }),
+      reviewState({ key: 'vocab:greet-khodahafez', kind: 'vocab', itemId: 'greet-khodahafez', lapseCount: 5 }),
+    ])
+    const exercises = await buildFocusedSession({ filterBy: 'weak' })
+    expect(exercises[0]?.reviewable?.itemId).toBe('greet-khodahafez')
+  })
+
+  it('"category" returns only items whose vocab category matches, ignoring due dates', async () => {
+    await db.reviewStates.bulkPut([
+      reviewState({ key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam' }), // category: greetings
+      reviewState({ key: 'vocab:greet-khodahafez', kind: 'vocab', itemId: 'greet-khodahafez' }), // greetings
+      reviewState({ key: 'vocab:num-1', kind: 'vocab', itemId: 'num-1' }), // numbers
+    ])
+    const exercises = await buildFocusedSession({ filterBy: 'category', category: 'greetings' })
+    const itemIds = exercises.map((e) => e.reviewable?.itemId)
+    expect(itemIds).toContain('greet-salam')
+    expect(itemIds).toContain('greet-khodahafez')
+    expect(itemIds).not.toContain('num-1')
+  })
+
+  it('excludes suspended items and items still in the "new" state', async () => {
+    await db.reviewStates.bulkPut([
+      reviewState({ key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', lapseCount: 3, suspended: true }),
+      reviewState({ key: 'vocab:greet-khodahafez', kind: 'vocab', itemId: 'greet-khodahafez', lapseCount: 3, state: 'new' }),
+    ])
+    const exercises = await buildFocusedSession({ filterBy: 'weak' })
+    expect(exercises.length).toBe(0)
+  })
+
+  it('every returned exercise is gradable (has a reviewable ref matching the source state)', async () => {
+    await db.reviewStates.put(reviewState({ key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', lapseCount: 1 }))
+    const exercises = await buildFocusedSession({ filterBy: 'weak' })
+    expect(exercises.length).toBeGreaterThan(0)
+    for (const ex of exercises) expect(ex.reviewable?.kind).toBe('vocab')
   })
 })
