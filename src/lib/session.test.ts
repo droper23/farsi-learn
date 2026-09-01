@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../storage/db'
 import { getOrCreateReviewState } from '../storage/progressRepo'
-import { buildNextLesson, buildFocusedSession, exerciseForReviewable, forecastForReviewable } from './session'
+import { buildNextLesson, buildFocusedSession, buildWritingPractice, exerciseForReviewable, forecastForReviewable } from './session'
 import type { ReviewState } from '../srs/types'
 
 beforeEach(async () => {
@@ -203,5 +203,55 @@ describe('buildFocusedSession', () => {
     const exercises = await buildFocusedSession({ filterBy: 'weak' })
     expect(exercises.length).toBeGreaterThan(0)
     for (const ex of exercises) expect(ex.reviewable?.kind).toBe('vocab')
+  })
+
+  it('"unit" (Practice tab — practice any lesson) returns only already-taught items belonging to that unit', async () => {
+    await db.reviewStates.bulkPut([
+      // 'greet-salam' belongs to u1-greetings; 'num-1' does not.
+      reviewState({ key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam' }),
+      reviewState({ key: 'vocab:num-1', kind: 'vocab', itemId: 'num-1' }),
+    ])
+    const exercises = await buildFocusedSession({ filterBy: 'unit', unitId: 'u1-greetings' })
+    const itemIds = exercises.map((e) => e.reviewable?.itemId)
+    expect(itemIds).toContain('greet-salam')
+    expect(itemIds).not.toContain('num-1')
+  })
+
+  it('"unit" returns nothing for a unit with no reviewStates yet (not started)', async () => {
+    const exercises = await buildFocusedSession({ filterBy: 'unit', unitId: 'u1-greetings' })
+    expect(exercises).toEqual([])
+  })
+})
+
+describe('buildWritingPractice (Practice tab)', () => {
+  it('forces the en→fa typing direction, ignoring letters/grammar/sentences', async () => {
+    const now = Date.now()
+    await db.reviewStates.bulkPut([
+      { key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', state: 'review', dueAt: now, intervalDays: 10, easeFactor: 2.5, reviewCount: 3, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now },
+      { key: 'alphabet:alef', kind: 'alphabet', itemId: 'alef', state: 'review', dueAt: now, intervalDays: 10, easeFactor: 2.5, reviewCount: 3, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now },
+    ])
+    const exercises = await buildWritingPractice()
+    expect(exercises.length).toBe(1)
+    expect(exercises[0].kind).toBe('type-answer')
+    expect(exercises[0].reviewable).toEqual({ kind: 'vocab', itemId: 'greet-salam' })
+    if (exercises[0].kind === 'type-answer') expect(exercises[0].answerLang).toBe('fa')
+  })
+
+  it('excludes suspended and never-introduced ("new") items', async () => {
+    const now = Date.now()
+    await db.reviewStates.bulkPut([
+      { key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', state: 'review', dueAt: now, intervalDays: 10, easeFactor: 2.5, reviewCount: 3, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now, suspended: true },
+      { key: 'vocab:num-1', kind: 'vocab', itemId: 'num-1', state: 'new', dueAt: now, intervalDays: 0, easeFactor: 2.5, reviewCount: 0, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now },
+    ])
+    expect(await buildWritingPractice()).toEqual([])
+  })
+
+  it('includes learner-authored custom saved words', async () => {
+    const now = Date.now()
+    await db.savedItems.add({ id: 'custom-1', fa: 'قلم', translit: 'ghalam', en: 'pen', createdAt: now })
+    await db.reviewStates.put({ key: 'custom:custom-1', kind: 'custom', itemId: 'custom-1', state: 'review', dueAt: now, intervalDays: 10, easeFactor: 2.5, reviewCount: 3, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now })
+    const exercises = await buildWritingPractice()
+    expect(exercises.length).toBe(1)
+    expect(exercises[0].reviewable).toEqual({ kind: 'custom', itemId: 'custom-1' })
   })
 })

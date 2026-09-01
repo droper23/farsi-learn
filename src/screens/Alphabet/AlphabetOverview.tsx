@@ -8,6 +8,13 @@ export function AlphabetOverview() {
     <div>
       <PageHeader title="The Alphabet" subtitle="Tap a letter to see its forms, sound, and example words" />
       <div className="flex flex-col gap-6 px-4 pb-8 md:px-0">
+        <Link
+          to="/alphabet/cheatsheet"
+          className="block rounded-2xl border border-[var(--color-border)] bg-[var(--color-brand-soft)] px-4 py-3 text-center text-sm font-medium text-[var(--color-brand-strong)]"
+        >
+          View the full cheat sheet →
+        </Link>
+
         <Card>
           <p className="mb-3 text-sm font-medium">32 letters</p>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">

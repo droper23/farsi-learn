@@ -55,6 +55,43 @@ describe('App smoke test', () => {
     expect(screen.getByText(/Practice this letter/i)).toBeInTheDocument()
   })
 
+  it('opens the alphabet cheat sheet and expands a letter to its full detail', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    window.location.hash = '#/alphabet'
+    await user.click(await screen.findByRole('link', { name: /cheat sheet/i }))
+
+    expect(await screen.findByRole('heading', { name: /Alphabet cheat sheet/i })).toBeInTheDocument()
+    const alefRow = await screen.findByRole('button', { name: /Alef/i })
+    await user.click(alefRow)
+    expect(await screen.findByText('Isolated')).toBeInTheDocument()
+    expect(screen.getAllByText(/non-joining/i).length).toBeGreaterThan(0)
+  })
+
+  it('opens the Practice tab, reads a passage, and starts a not-yet-started unit\'s practice session', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    window.location.hash = '#/practice'
+
+    expect(await screen.findByRole('heading', { name: /^Practice$/i })).toBeInTheDocument()
+
+    // Reading practice: a real, always-available passage list (content, not progress-gated).
+    await user.click(screen.getByRole('link', { name: /Reading practice/i }))
+    expect(await screen.findByRole('heading', { name: /Reading practice/i })).toBeInTheDocument()
+    const firstPassage = (await screen.findAllByRole('button', { name: /formal|literary/i }))[0]
+    await user.click(firstPassage)
+    expect(await screen.findByText('Isolated', { exact: false }).catch(() => null)).toBeFalsy() // sanity: not the cheat sheet
+    expect(screen.getAllByRole('button', { name: /Hear an approximate/i }).length).toBeGreaterThan(0)
+
+    // Practice by unit: a unit with no progress yet shows a graceful empty state.
+    window.location.hash = '#/practice'
+    await screen.findByRole('heading', { name: /^Practice$/i })
+    expect(screen.queryByRole('button', { name: /Practice comprehension questions/i })).not.toBeInTheDocument()
+    const unitButton = await screen.findByRole('button', { name: /^Practice The Alphabet, Part 1$/i })
+    await user.click(unitButton)
+    expect(await screen.findByText(/haven't started this unit/i)).toBeInTheDocument()
+  })
+
   it('can search the dictionary and find a known word', async () => {
     const user = userEvent.setup()
     render(<App />)

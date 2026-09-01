@@ -10,8 +10,11 @@ import { UnitDetail } from './screens/UnitDetail'
 import { LessonPlayer } from './screens/LessonPlayer'
 import { ReviewSession } from './screens/ReviewSession'
 import { FocusedSession } from './screens/FocusedSession'
+import { Practice } from './screens/Practice'
+import { Reading } from './screens/Reading'
 import { AlphabetOverview } from './screens/Alphabet/AlphabetOverview'
 import { AlphabetLetterDetail } from './screens/Alphabet/AlphabetLetterDetail'
+import { AlphabetCheatSheet } from './screens/Alphabet/AlphabetCheatSheet'
 import { Dictionary } from './screens/Dictionary'
 import { ProgressSettings } from './screens/ProgressSettings'
 import { Stats } from './screens/Stats'
@@ -63,7 +66,10 @@ export default function App() {
           <Route path="lesson/:unitId" element={<LessonPlayer />} />
           <Route path="review" element={<ReviewSession />} />
           <Route path="focused" element={<FocusedSession />} />
+          <Route path="practice" element={<Practice />} />
+          <Route path="reading" element={<Reading />} />
           <Route path="alphabet" element={<AlphabetOverview />} />
+          <Route path="alphabet/cheatsheet" element={<AlphabetCheatSheet />} />
           <Route path="alphabet/:letterId" element={<AlphabetLetterDetail />} />
           <Route path="dictionary" element={<Dictionary />} />
           <Route path="progress" element={<ProgressSettings />} />

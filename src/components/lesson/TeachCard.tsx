@@ -157,7 +157,10 @@ function SentenceTeach({ id }: { id: string }) {
   )
 }
 
-function PassageTeach({ id }: { id: string }) {
+/** Exported for reuse as a browse/re-read surface — see screens/Reading.tsx
+ *  (review M3: passages were previously only viewable while being taught,
+ *  with no way to revisit them afterward). */
+export function PassageTeach({ id }: { id: string }) {
   const p = findPassage(id)
   if (!p) return null
   const sentences = p.sentenceIds.map(findSentence).filter((s): s is NonNullable<typeof s> => !!s)

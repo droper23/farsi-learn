@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { buildFocusedSession, forecastForReviewable, type FocusedFilter } from '../lib/session'
+import { buildFocusedSession, buildWritingPractice, forecastForReviewable, findUnit, type FocusedFilter } from '../lib/session'
 import { recordReview } from '../storage/progressRepo'
 import { ratingFor } from '../lib/exercises/grade'
 import { useAsyncData } from '../hooks/useAsyncData'
@@ -15,20 +15,26 @@ interface FocusedSessionState {
   filterBy?: FocusedFilter
   category?: VocabCategory
   kind?: ReviewableKind
+  unitId?: string
+  /** Writing-only practice (Practice tab) — see buildWritingPractice.
+   *  Takes priority over filterBy when set. */
+  writing?: boolean
 }
 
-/** Practice outside the due-date schedule — currently just "weak spots"
- *  (entry point on the Stats screen), but built generically (filterBy:
- *  'weak' | 'category') so a category-focused entry point can reuse it
- *  later without a new screen. See lib/session.ts buildFocusedSession. */
+/** Practice outside the due-date schedule: "weak spots" and "by category"
+ *  (Stats screen entry points), "by unit" and "writing practice" (Practice
+ *  tab entry points) all funnel through this one screen — see
+ *  lib/session.ts buildFocusedSession / buildWritingPractice. */
 export function FocusedSession() {
   const navigate = useNavigate()
   const location = useLocation()
   const options = (location.state as FocusedSessionState | null) ?? { filterBy: 'weak' }
   const filterBy = options.filterBy ?? 'weak'
   const exercises = useAsyncData(
-    () => buildFocusedSession({ filterBy, category: options.category, kind: options.kind }),
-    [filterBy, options.category, options.kind],
+    () => options.writing
+      ? buildWritingPractice()
+      : buildFocusedSession({ filterBy, category: options.category, kind: options.kind, unitId: options.unitId }),
+    [options.writing, filterBy, options.category, options.kind, options.unitId],
   )
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -38,7 +44,10 @@ export function FocusedSession() {
     [currentReviewable?.kind, currentReviewable?.itemId],
   )
 
-  const title = filterBy === 'weak' ? 'Weak spots' : `Practice: ${options.category ?? ''}`
+  const title = options.writing ? 'Writing practice'
+    : filterBy === 'weak' ? 'Weak spots'
+    : filterBy === 'unit' ? (options.unitId && findUnit(options.unitId)?.title) || 'Practice this unit'
+    : `Practice: ${options.category ?? ''}`
 
   async function handleComplete(correct: boolean, hintsUsed: number) {
     const list = exercises.data
@@ -59,8 +68,15 @@ export function FocusedSession() {
   if (list.length === 0) {
     return (
       <div>
-        <PageHeader title={title} subtitle="Nothing to practice here right now." />
-        <div className="px-4 md:px-0"><Button onClick={() => navigate('/stats')}>Back to stats</Button></div>
+        <PageHeader
+          title={title}
+          subtitle={
+            filterBy === 'unit' && !options.writing
+              ? "Nothing to practice yet — you haven't started this unit."
+              : 'Nothing to practice here right now.'
+          }
+        />
+        <div className="px-4 md:px-0"><Button onClick={() => navigate('/practice')}>Back to Practice</Button></div>
       </div>
     )
   }

@@ -204,7 +204,7 @@ export async function buildReviewExercises(limit = 30): Promise<Exercise[]> {
 // still calls the normal recordReview/applyRating path).
 // ---------------------------------------------------------------------------
 
-export type FocusedFilter = 'weak' | 'category'
+export type FocusedFilter = 'weak' | 'category' | 'unit'
 
 export interface FocusedSessionOptions {
   /** Restrict to one reviewable kind (e.g. only vocab). Omit for all kinds. */
@@ -214,7 +214,26 @@ export interface FocusedSessionOptions {
    *  items' resolved category (letters/grammar/sentences have no vocab
    *  category, so they're excluded from a category-filtered session). */
   category?: VocabCategory
+  /** Required when filterBy is 'unit' — practice any already-taught item
+   *  from a specific unit, regardless of curriculum order or due dates
+   *  (the Practice tab's "practice any lesson" entry point). */
+  unitId?: string
   limit?: number
+}
+
+/** Every reviewable id a unit teaches, across all its content kinds
+ *  (including the sentences inside any passages it references) — same
+ *  "flat cross-kind id set" shape used by mastery.ts totalTeachableItemIds. */
+function unitReviewableIds(unit: Unit): Set<string> {
+  const ids = new Set<string>()
+  for (const id of unit.alphabetIds ?? []) ids.add(`alphabet:${id}`)
+  for (const id of unit.vocabIds ?? []) ids.add(`vocab:${id}`)
+  for (const id of unit.grammarConceptIds ?? []) ids.add(`grammar:${id}`)
+  for (const id of unit.sentenceIds ?? []) ids.add(`sentence:${id}`)
+  for (const pid of unit.passageIds ?? []) {
+    for (const sid of findPassage(pid)?.sentenceIds ?? []) ids.add(`sentence:${sid}`)
+  }
+  return ids
 }
 
 /** "Weak" = has lapsed at least once, is currently relearning, or has an
@@ -231,7 +250,7 @@ function stateVocabCategory(state: ReviewState): VocabCategory | null {
 }
 
 export async function buildFocusedSession(options: FocusedSessionOptions): Promise<Exercise[]> {
-  const { kind, filterBy, category, limit = 20 } = options
+  const { kind, filterBy, category, unitId, limit = 20 } = options
   let states = await getReviewStates(kind)
   states = states.filter((s) => !s.suspended && s.state !== 'new')
 
@@ -240,6 +259,10 @@ export async function buildFocusedSession(options: FocusedSessionOptions): Promi
     // Weakest first: most lapses, then lowest ease — surfaces the most
     // struggled-with items at the top of the session.
     states.sort((a, b) => b.lapseCount - a.lapseCount || a.easeFactor - b.easeFactor)
+  } else if (filterBy === 'unit') {
+    const unit = unitId ? findUnit(unitId) : undefined
+    const ids = unit ? unitReviewableIds(unit) : new Set<string>()
+    states = states.filter((s) => ids.has(`${s.kind}:${s.itemId}`))
   } else {
     states = category ? states.filter((s) => stateVocabCategory(s) === category) : []
   }
@@ -249,6 +272,45 @@ export async function buildFocusedSession(options: FocusedSessionOptions): Promi
   for (const state of chosen) {
     const ex = await exerciseForReviewable(state.kind, state.itemId, 'standard')
     if (ex) exercises.push(ex)
+  }
+  return exercises
+}
+
+function shuffled<T>(items: T[]): T[] {
+  const arr = [...items]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
+/** Writing practice (Practice tab): a session of nothing but "type the
+ *  Persian" production exercises — the closest thing this app has to
+ *  handwriting practice, since it's a browser app with no stylus/stroke
+ *  input. Deliberately narrower than buildFocusedSession: it forces the
+ *  en→fa typing direction on every item instead of letting
+ *  exerciseForReviewable randomly pick a recognition (MCQ/listening)
+ *  exercise, which is the whole point of a dedicated writing mode. Only
+ *  vocab/custom items have a real "type the Persian" generator today —
+ *  sentences' only production-shaped generator is word-order (arranging
+ *  given words, not typing), so they're excluded rather than mislabeled
+ *  as writing practice. */
+export async function buildWritingPractice(limit = 20): Promise<Exercise[]> {
+  const states = (await getReviewStates()).filter(
+    (s) => !s.suspended && s.state !== 'new' && (s.kind === 'vocab' || s.kind === 'custom'),
+  )
+  const chosen = shuffled(states).slice(0, limit)
+
+  const exercises: Exercise[] = []
+  for (const state of chosen) {
+    if (state.kind === 'vocab') {
+      const item = findVocab(state.itemId)
+      if (item) exercises.push(generateVocabTypeAnswer(item, 'en-fa'))
+    } else {
+      const saved = await db.savedItems.get(state.itemId)
+      if (saved) exercises.push(generateCustomTypeAnswer(saved, 'en-fa'))
+    }
   }
   return exercises
 }
