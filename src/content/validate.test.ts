@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { vocabulary, findVocab } from './vocabulary'
 import { sentences, findSentence } from './sentences'
 import { grammar, findGrammarConcept } from './grammar'
-import { alphabet } from './alphabet'
+import { alphabet, findLetter } from './alphabet'
+import { units } from './curriculum/units'
+import { levels } from './curriculum/levels'
 
-function duplicates(ids: string[]): string[] {
-  const seen = new Set<string>()
-  const dupes = new Set<string>()
+function duplicates<T>(ids: T[]): T[] {
+  const seen = new Set<T>()
+  const dupes = new Set<T>()
   for (const id of ids) {
     if (seen.has(id)) dupes.add(id)
     seen.add(id)
@@ -138,6 +140,35 @@ describe('grammar content', () => {
       for (const rid of g.relatedConceptIds ?? []) {
         expect(findGrammarConcept(rid), `${g.id} relatedConceptIds -> missing ${rid}`).toBeTruthy()
       }
+    }
+  })
+})
+
+describe('curriculum content', () => {
+  it('units have no duplicate ids', () => {
+    expect(duplicates(units.map((u) => u.id))).toEqual([])
+  })
+
+  it('every unit level exists in the level list', () => {
+    const levelNums = new Set(levels.map((l) => l.level))
+    for (const u of units) expect(levelNums.has(u.level), u.id).toBe(true)
+  })
+
+  it('unit content refs (alphabet/vocab/grammar/sentence) all point at real content', () => {
+    for (const u of units) {
+      for (const id of u.alphabetIds ?? []) expect(findLetter(id), `${u.id} alphabetIds -> missing ${id}`).toBeTruthy()
+      for (const id of u.vocabIds ?? []) expect(findVocab(id), `${u.id} vocabIds -> missing ${id}`).toBeTruthy()
+      for (const id of u.grammarConceptIds ?? []) expect(findGrammarConcept(id), `${u.id} grammarConceptIds -> missing ${id}`).toBeTruthy()
+      for (const id of u.sentenceIds ?? []) expect(findSentence(id), `${u.id} sentenceIds -> missing ${id}`).toBeTruthy()
+    }
+  })
+
+  it('no unit is entirely empty (except explicitly-seeded stub units)', () => {
+    const stubUnits = new Set(['u6-reading-authentic'])
+    for (const u of units) {
+      if (stubUnits.has(u.id)) continue
+      const total = (u.alphabetIds?.length ?? 0) + (u.vocabIds?.length ?? 0) + (u.grammarConceptIds?.length ?? 0) + (u.sentenceIds?.length ?? 0)
+      expect(total, `${u.id} has no content at all`).toBeGreaterThan(0)
     }
   })
 })
