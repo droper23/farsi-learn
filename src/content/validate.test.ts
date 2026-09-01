@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { vocabulary, findVocab } from './vocabulary'
 import { sentences, findSentence } from './sentences'
 import { grammar, findGrammarConcept } from './grammar'
-import { alphabet, findLetter } from './alphabet'
+import { alphabet, findLetter, shortVowels } from './alphabet'
 import { units } from './curriculum/units'
 import { levels } from './curriculum/levels'
+import type { ConfidenceStatus, SourceNote } from './types'
 
 function duplicates<T>(ids: T[]): T[] {
   const seen = new Set<T>()
@@ -170,5 +171,48 @@ describe('curriculum content', () => {
       const total = (u.alphabetIds?.length ?? 0) + (u.vocabIds?.length ?? 0) + (u.grammarConceptIds?.length ?? 0) + (u.sentenceIds?.length ?? 0)
       expect(total, `${u.id} has no content at all`).toBeGreaterThan(0)
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Content-quality discipline: every piece of linguistic content must carry
+// an explicit, valid `confidence` (see SourceNote in types.ts). The type
+// system already forces every literal to set one, but this makes the rule
+// explicit and catches anything built dynamically or cast around the type
+// (e.g. `as VocabItem`) where TypeScript wouldn't. It's cheap, so it runs
+// across every content collection that carries a SourceNote.
+// ---------------------------------------------------------------------------
+
+const VALID_CONFIDENCE: ConfidenceStatus[] = ['high-confidence', 'needs-review', 'verified']
+
+function expectValidConfidence(items: Array<SourceNote & { id: string }>, label: string) {
+  for (const item of items) {
+    expect(VALID_CONFIDENCE, `${label} ${item.id} has an invalid confidence value: ${item.confidence}`)
+      .toContain(item.confidence)
+    if (item.confidence === 'needs-review') {
+      expect(item.note?.trim(), `${label} ${item.id} is needs-review but has no note explaining why`).toBeTruthy()
+    }
+  }
+}
+
+describe('content confidence discipline', () => {
+  it('every vocabulary item has a valid confidence, and needs-review items have a note', () => {
+    expectValidConfidence(vocabulary, 'vocab')
+  })
+
+  it('every sentence has a valid confidence, and needs-review items have a note', () => {
+    expectValidConfidence(sentences, 'sentence')
+  })
+
+  it('every grammar concept has a valid confidence, and needs-review items have a note', () => {
+    expectValidConfidence(grammar, 'grammar')
+  })
+
+  it('every alphabet letter has a valid confidence, and needs-review items have a note', () => {
+    expectValidConfidence(alphabet, 'alphabet')
+  })
+
+  it('every short vowel has a valid confidence, and needs-review items have a note', () => {
+    expectValidConfidence(shortVowels, 'short-vowel')
   })
 })
