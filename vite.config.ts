@@ -36,10 +36,23 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // The optional Firebase cloud-sync SDK is dynamically imported and
+        // only fetched if a user configures + uses cloud sync — it must
+        // not be force-downloaded into every visitor's offline cache.
+        globIgnores: ['**/firebase-*.js'],
         navigateFallback: 'index.html',
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase'
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
