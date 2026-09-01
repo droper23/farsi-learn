@@ -73,6 +73,12 @@ export function AlphabetLetterDetail() {
               Often confused with: {letter.oftenConfusedWith.map((id) => findLetter(id)?.forms.isolated).join(' ')}
             </p>
           )}
+          {letter.homophoneNote && (
+            <div className="w-full rounded-xl bg-[var(--color-warn-soft)] px-3 py-2 text-left text-sm text-[var(--color-ink)]">
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--color-warn)]">Sounds the same as another letter</p>
+              <p>{letter.homophoneNote}</p>
+            </div>
+          )}
           <Button onClick={startPractice}>Practice this letter</Button>
         </Card>
 

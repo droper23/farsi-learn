@@ -23,6 +23,26 @@ function sample<T>(pool: T[], count: number, exclude: (x: T) => boolean): T[] {
   return candidates.slice(0, count)
 }
 
+/** Like `sample`, but also guarantees no two picks (nor a pick and
+ *  `reservedLabel`) share the same `label(...)` — used where the option
+ *  text itself must be unique, e.g. letters that are true homophones
+ *  (ز/ذ/ض/ظ are all transliterated "z") would otherwise let two distractors
+ *  display the identical label. */
+function sampleUniqueByLabel<T>(
+  pool: T[], count: number, reservedLabel: string, label: (x: T) => string, exclude: (x: T) => boolean,
+): T[] {
+  const seen = new Set([reservedLabel])
+  const result: T[] = []
+  for (const c of shuffle(pool.filter((x) => !exclude(x)))) {
+    const l = label(c)
+    if (seen.has(l)) continue
+    seen.add(l)
+    result.push(c)
+    if (result.length === count) break
+  }
+  return result
+}
+
 let uid = 0
 function exerciseId(prefix: string): string {
   uid += 1
@@ -186,7 +206,12 @@ export function generateCustomTypeAnswer(item: CustomReviewableSource, direction
 // ---------------------------------------------------------------------------
 
 export function generateLetterSoundMcq(letter: AlphabetLetter, pool: AlphabetLetter[] = alphabet): McqExercise {
-  const distractors = sample(pool, 3, (l) => l.id === letter.id)
+  // Several letters share an identical transliteration (e.g. ز/ذ/ض/ظ are
+  // all "z") because they're true homophones in modern Persian — see
+  // AlphabetLetter.homophoneNote. sampleUniqueByLabel keeps every option's
+  // label unique so two options never display the exact same text with
+  // only one graded correct.
+  const distractors = sampleUniqueByLabel(pool, 3, letter.transliteration, (l) => l.transliteration, (l) => l.id === letter.id)
   const options: ExerciseOption[] = shuffle([
     { id: letter.id, en: letter.transliteration },
     ...distractors.map((d) => ({ id: d.id, en: d.transliteration })),

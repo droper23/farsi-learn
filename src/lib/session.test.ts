@@ -47,6 +47,29 @@ describe('matching exercises in lesson rotation', () => {
   })
 })
 
+describe('direct unit access', () => {
+  it('builds a lesson for any unit passed explicitly, with none of the earlier units complete', async () => {
+    // No progress recorded anywhere — the current unit would default to
+    // u1-alphabet-1 — but a learner should still be able to jump straight
+    // into a much later unit without finishing everything before it.
+    const plan = await buildNextLesson('u2-past-tense')
+    expect(plan?.unit.id).toBe('u2-past-tense')
+    expect(plan?.lessonIndex).toBe(0)
+  })
+
+  it('resumes the requested unit from its own progress, independent of the current unit', async () => {
+    await db.unitProgress.put({ unitId: 'u2-past-tense', lessonsCompleted: 1, updatedAt: Date.now() })
+    const plan = await buildNextLesson('u2-past-tense')
+    expect(plan?.unit.id).toBe('u2-past-tense')
+    expect(plan?.lessonIndex).toBe(1)
+  })
+
+  it('falls back to the current unit when no unitId is given', async () => {
+    const plan = await buildNextLesson(undefined)
+    expect(plan?.unit.id).toBe('u1-alphabet-1')
+  })
+})
+
 describe('full SRS integration for saved words (custom entries)', () => {
   it('generates a gradable exercise for a learner-authored saved entry', async () => {
     const now = Date.now()

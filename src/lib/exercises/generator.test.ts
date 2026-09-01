@@ -48,6 +48,20 @@ describe('alphabet exercises', () => {
     expect(gradeMcq(ex, sampleLetter.id)).toBe(true)
   })
 
+  it('letter sound mcq never offers two options with the same transliteration label', () => {
+    // Several letters are true homophones in modern Persian (e.g. ز ذ ض ظ
+    // are all "z" — see AlphabetLetter.homophoneNote). If a distractor
+    // shares the target's transliteration, the option list would show the
+    // same label twice with only one graded correct.
+    for (const letter of alphabet) {
+      for (let i = 0; i < 20; i++) {
+        const ex = generateLetterSoundMcq(letter)
+        const labels = ex.options.map((o) => o.en)
+        expect(new Set(labels).size).toBe(labels.length)
+      }
+    }
+  })
+
   it('non-joining letters only offer isolated/final positions', () => {
     const ex = generateLetterPositionMcq(nonJoiningLetter)
     expect(['isolated', 'final']).toContain(ex.correctOptionId)

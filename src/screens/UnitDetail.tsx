@@ -35,20 +35,21 @@ export function UnitDetail() {
         <Card>
           <ProgressBar value={state.data?.completed ?? 0} max={unit.lessonCount} label={`${state.data?.completed ?? 0} of ${unit.lessonCount} lessons`} />
           <div className="mt-3">
-            {isCurrent && <Button onClick={() => navigate('/lesson')} fullWidth>Start next lesson</Button>}
-            {!isCurrent && isDone && <p className="text-sm text-[var(--color-good)]">Unit complete — its items stay in your review queue.</p>}
-            {!isCurrent && !isDone && (
-              <p className="text-sm text-[var(--color-ink-muted)]">Finish earlier units first — this one previews below.</p>
+            {!isDone && (
+              <Button onClick={() => navigate(`/lesson/${unit.id}`)} fullWidth>
+                {(state.data?.completed ?? 0) > 0 ? 'Continue this unit' : 'Start this unit'}
+              </Button>
             )}
+            {isDone && <p className="text-sm text-[var(--color-good)]">Unit complete — its items stay in your review queue.</p>}
           </div>
         </Card>
 
         {!isCurrent && !isDone && currentUnit && (
           <Card className="flex flex-col gap-2 bg-[var(--color-brand-soft)]">
-            <p className="text-sm font-medium text-[var(--color-brand-strong)]">Your current unit</p>
+            <p className="text-sm font-medium text-[var(--color-brand-strong)]">Recommended: your current unit</p>
             <p className="font-medium">{currentUnit.title}</p>
             <p className="text-sm text-[var(--color-ink-muted)]">{currentUnit.description}</p>
-            <Button onClick={() => navigate('/lesson')} fullWidth>Continue "{currentUnit.title}"</Button>
+            <Button variant="secondary" onClick={() => navigate(`/lesson/${currentUnit.id}`)} fullWidth>Go to "{currentUnit.title}" instead</Button>
           </Card>
         )}
 

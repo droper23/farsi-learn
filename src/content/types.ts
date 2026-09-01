@@ -74,6 +74,11 @@ export interface AlphabetLetter extends SourceNote {
   englishSoundHint: string
   /** Letters frequently confused with this one (shape or sound). */
   oftenConfusedWith?: string[]
+  /** For letters that are pronounced identically to one or more other
+   *  letters in modern Persian (e.g. ز ذ ض ظ are all "z") — explains what,
+   *  if anything, distinguishes them, since the ear alone can't. Present
+   *  only on letters that belong to such a group. */
+  homophoneNote?: string
   exampleWords: Array<PersianText & { en: string }>
   category: 'consonant' | 'vowel-letter'
 }

@@ -56,6 +56,7 @@ export default function App() {
           <Route path="learn" element={<LessonMap />} />
           <Route path="learn/:unitId" element={<UnitDetail />} />
           <Route path="lesson" element={<LessonPlayer />} />
+          <Route path="lesson/:unitId" element={<LessonPlayer />} />
           <Route path="review" element={<ReviewSession />} />
           <Route path="focused" element={<FocusedSession />} />
           <Route path="alphabet" element={<AlphabetOverview />} />

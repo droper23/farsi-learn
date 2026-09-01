@@ -248,8 +248,14 @@ export interface LessonPlan {
   steps: LessonStep[]
 }
 
-export async function buildNextLesson(): Promise<LessonPlan | null> {
-  const unit = await getCurrentUnit()
+/** Builds the next unfinished lesson for a unit. Pass `unitId` to jump
+ *  straight into any unit's lessons regardless of curriculum order —
+ *  learners aren't required to finish earlier units first; omit it to use
+ *  the recommended current unit (the dashboard's default "keep going"
+ *  path). Either way, lessons within the chosen unit still resume from
+ *  wherever that unit's own progress left off. */
+export async function buildNextLesson(unitId?: string): Promise<LessonPlan | null> {
+  const unit = (unitId && findUnit(unitId)) || (await getCurrentUnit())
   const lessonIndex = await getLessonsCompleted(unit.id)
   if (lessonIndex >= unit.lessonCount) return null
   const content = contentForLesson(unit, lessonIndex)

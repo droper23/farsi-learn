@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { buildNextLesson, markLessonComplete, getTodaySummary } from '../lib/session'
 import { recordReview } from '../storage/progressRepo'
@@ -15,7 +15,8 @@ import { ExerciseRunner } from '../components/exercises/ExerciseRunner'
 
 export function LessonPlayer() {
   const navigate = useNavigate()
-  const plan = useAsyncData(() => buildNextLesson(), [])
+  const { unitId } = useParams()
+  const plan = useAsyncData(() => buildNextLesson(unitId), [unitId])
   const [stepIndex, setStepIndex] = useState(0)
   const [finished, setFinished] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
@@ -57,7 +58,10 @@ export function LessonPlayer() {
   if (!plan.data) {
     return (
       <div>
-        <PageHeader title="No lesson available" subtitle="Every unit is complete for now." />
+        <PageHeader
+          title="No lesson available"
+          subtitle={unitId ? 'This unit is already fully complete — its items stay in your review queue.' : 'Every unit is complete for now.'}
+        />
         <div className="px-4 md:px-0"><Button onClick={() => navigate('/')}>Back to home</Button></div>
       </div>
     )
