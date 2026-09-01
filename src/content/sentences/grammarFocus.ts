@@ -125,8 +125,8 @@ export const grammarFocusSentences: ExampleSentence[] = [
       { fa: 'جدید است', translit: 'jadid ast', en: 'is new', vocabId: 'adj-jadid' },
     ],
     grammarConceptIds: ['g-relative-clauses'], vocabIds: ['sch-ketab', 'conn-ke', 'verb-kharidan', 'adj-jadid'],
-    notes: 'که also relativizes things, not just people — the same single word covers "who", "which", and "that".',
-    confidence: 'high-confidence',
+    notes: 'که also relativizes things, not just people — the same single word covers "who", "which", and "that". کتابی (with the restrictive -ی) marks the indefinite noun immediately before a restrictive که-clause.',
+    confidence: 'verified',
   },
   {
     id: 's-reported-speech', fa: 'او گفت که فردا می‌آید.', translit: 'u goft ke fardā miāyad.', en: 'He/She said that he/she is coming tomorrow.',

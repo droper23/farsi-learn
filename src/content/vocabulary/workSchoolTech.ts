@@ -7,7 +7,7 @@ export const workVocab: VocabItem[] = [
   { id: 'work-daftar', fa: 'دفتر', translit: 'daftar', en: 'office / notebook', pos: 'noun', category: 'work', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'work-rais', fa: 'رئیس', translit: 'ra\'is', en: 'boss', pos: 'noun', category: 'work', register: 'neutral', frequency: 3, level: 2, confidence: 'high-confidence' },
   { id: 'work-hoghugh', fa: 'حقوق', translit: 'hoquq', en: 'salary', pos: 'noun', category: 'work', register: 'neutral', frequency: 3, level: 2, notes: 'حقوق is also the plural of حق ("right") and can mean "rights" — context (employment vs. legal) almost always disambiguates.', confidence: 'high-confidence' },
-  { id: 'work-hamkar', fa: 'همکار', translit: 'hamkār', en: 'colleague / coworker', pos: 'noun', category: 'work', register: 'neutral', frequency: 2, level: 2, confidence: 'high-confidence' },
+  { id: 'work-hamkar', fa: 'همکار', translit: 'hamkār', en: 'colleague / coworker', pos: 'noun', category: 'work', register: 'neutral', frequency: 2, level: 2, confidence: 'verified' },
 ]
 
 export const schoolVocab: VocabItem[] = [
@@ -29,5 +29,5 @@ export const technologyVocab: VocabItem[] = [
   { id: 'tech-email', fa: 'ایمیل', translit: 'imeyl', en: 'email', pos: 'noun', category: 'technology', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'tech-app', fa: 'اپلیکیشن', translit: 'āplikeyshen', en: 'app', pos: 'noun', category: 'technology', register: 'colloquial', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'tech-akswapardazi', fa: 'عکس', translit: 'aks', en: 'photo / picture', pos: 'noun', category: 'technology', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
-  { id: 'tech-ramzobur', fa: 'رمز عبور', translit: 'ramz-e obur', en: 'password', pos: 'noun', category: 'technology', register: 'neutral', frequency: 2, level: 1, literalEn: 'code of passage', confidence: 'high-confidence' },
+  { id: 'tech-ramzobur', fa: 'رمز عبور', translit: 'ramz-e obur', en: 'password', pos: 'noun', category: 'technology', register: 'neutral', frequency: 2, level: 1, literalEn: 'code of passage', confidence: 'verified' },
 ]

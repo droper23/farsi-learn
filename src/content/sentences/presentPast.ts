@@ -89,7 +89,7 @@ export const presentTenseSentences: ExampleSentence[] = [
       { fa: 'می‌خواند', translit: 'mikhānad', en: 'reads / is reading', vocabId: 'verb-khandan' },
     ],
     grammarConceptIds: ['g-progressive'], vocabIds: ['pron-oo', 'sch-ketab', 'verb-khandan'],
-    confidence: 'high-confidence',
+    confidence: 'verified',
   },
 ]
 
@@ -149,7 +149,7 @@ export const pastTenseSentences: ExampleSentence[] = [
     ],
     grammarConceptIds: ['g-present-perfect', 'g-negation'], vocabIds: ['pron-oo', 'verb-raftan'],
     notes: 'Present perfect negates the same way as other tenses built on the past participle: نـ prefixes the participle (رفته -> نرفته).',
-    confidence: 'high-confidence',
+    confidence: 'verified',
   },
   {
     id: 's-past-bud', fa: 'دیروز هوا سرد بود.', translit: 'diruz havā sard bud.', en: 'The weather was cold yesterday.',

@@ -128,6 +128,6 @@ export const basicsSentences: ExampleSentence[] = [
     ],
     grammarConceptIds: ['g-orthography-zwnj', 'g-nouns-plurals'], vocabIds: ['fam-bache', 'home-khane'],
     notes: 'بچه‌ها is written with a ZWNJ between the noun and the -ها plural suffix, not a full space or no space at all.',
-    confidence: 'high-confidence',
+    confidence: 'verified',
   },
 ]
