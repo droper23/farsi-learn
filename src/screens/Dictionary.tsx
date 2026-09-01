@@ -36,7 +36,10 @@ export function Dictionary() {
       const existing = await db.savedItems.where('vocabId').equals(vocabId).first()
       if (existing) await db.savedItems.delete(existing.id)
     } else {
-      await db.savedItems.add({ id: `saved-${vocabId}-${Date.now()}`, vocabId, fa, translit, en, createdAt: Date.now() })
+      // Not a render path — this runs from a click handler.
+      // oxlint-disable-next-line react/purity
+      const now = Date.now()
+      await db.savedItems.add({ id: `saved-${vocabId}-${now}`, vocabId, fa, translit, en, createdAt: now })
     }
   }
 

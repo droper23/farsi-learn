@@ -42,6 +42,7 @@ export function McqRunner({ exercise, onComplete }: Props) {
             <button
               key={opt.id}
               type="button"
+              data-testid="exercise-option"
               onClick={() => choose(opt.id)}
               disabled={answered}
               className={`min-h-14 rounded-2xl border-2 px-4 py-3 text-left transition-colors ${stateClasses} disabled:opacity-100`}

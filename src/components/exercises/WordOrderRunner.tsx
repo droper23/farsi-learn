@@ -59,6 +59,7 @@ export function WordOrderRunner({ exercise, onComplete }: Props) {
           <button
             key={w.id}
             type="button"
+            data-testid="word-pool-item"
             onClick={() => pick(w.id)}
             disabled={submitted}
             className="fa-text rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-lg hover:bg-[var(--color-brand-soft)]"

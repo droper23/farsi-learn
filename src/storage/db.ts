@@ -78,11 +78,19 @@ export const DEFAULT_SETTINGS: SettingsRow = {
   onboardingComplete: false,
 }
 
+/** Pure read, safe to call from useLiveQuery — never writes. Falls back to
+ *  in-memory defaults until the row is created (see ensureSettingsRow). */
 export async function getSettings(): Promise<SettingsRow> {
   const row = await db.settings.get('app-settings')
-  if (row) return row
-  await db.settings.put(DEFAULT_SETTINGS)
-  return DEFAULT_SETTINGS
+  return row ?? DEFAULT_SETTINGS
+}
+
+/** Creates the settings row if it doesn't exist yet. Called once at app
+ *  startup — kept separate from getSettings() because Dexie's useLiveQuery
+ *  runs its querier in a read-only transaction and throws on any write. */
+export async function ensureSettingsRow(): Promise<void> {
+  const row = await db.settings.get('app-settings')
+  if (!row) await db.settings.put(DEFAULT_SETTINGS)
 }
 
 export async function updateSettings(patch: Partial<SettingsRow>): Promise<SettingsRow> {

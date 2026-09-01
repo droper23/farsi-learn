@@ -15,17 +15,23 @@ export function AlphabetLetterDetail() {
   const letter = letterId ? findLetter(letterId) : undefined
   const [practicing, setPracticing] = useState(false)
   const [round, setRound] = useState(0)
+  // Bumped on every "Practice this letter" click so the memo below
+  // regenerates a fresh set of exercises (new distractors) each session,
+  // rather than reusing the first session's questions forever.
+  const [practiceSession, setPracticeSession] = useState(0)
 
   const exercises = useMemo(() => {
     if (!letter) return []
     return [generateLetterSoundMcq(letter), generateLetterNameMcq(letter), generateLetterPositionMcq(letter)]
-  }, [letter, practicing])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [letter, practiceSession])
 
   if (!letter) return <PageHeader title="Letter not found" />
 
   async function startPractice() {
     await getOrCreateReviewState('alphabet', letter!.id)
     setRound(0)
+    setPracticeSession((n) => n + 1)
     setPracticing(true)
   }
 
