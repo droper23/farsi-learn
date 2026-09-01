@@ -43,6 +43,12 @@ export interface UnitProgress {
 export interface SettingsRow {
   id: 'app-settings'
   showTransliteration: boolean
+  /** Shows short-vowel diacritics (harakat/e'rab) on Persian text that has
+   *  them authored — see content/diacriticsManifest.ts. Off by default:
+   *  ordinary Persian writing omits these, so most real-world text a
+   *  learner encounters won't have them either; this is an optional
+   *  training-wheels view, not the default reading experience. */
+  showDiacritics: boolean
   reducedMotion: boolean
   newItemsPerDay: number
   maxReviewsPerDay: number
@@ -83,6 +89,7 @@ export const db = new FarsiLearnDB()
 export const DEFAULT_SETTINGS: SettingsRow = {
   id: 'app-settings',
   showTransliteration: true,
+  showDiacritics: false,
   reducedMotion: false,
   newItemsPerDay: 15,
   maxReviewsPerDay: 150,

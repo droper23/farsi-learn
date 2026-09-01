@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { canPronounce, pronouncePersian } from '../../lib/speech'
+import { diacriticsManifest } from '../../content/diacriticsManifest'
 
 interface PersianTextProps {
   fa: string
@@ -33,18 +34,21 @@ export function PersianText({ fa, translit, size = 'md', forceShowTranslit, show
   const showTranslit = forceShowTranslit ?? settings.showTransliteration
   const textToSpeak = speakText ?? fa
   const [voiceAvailable] = useState(() => canPronounce(textToSpeak))
+  // Diacritics are a display-only overlay — pronunciation lookups always
+  // use the plain text, since audioManifest is keyed by it.
+  const displayFa = settings.showDiacritics ? (diacriticsManifest[fa] ?? fa) : fa
 
   return (
     <span className={`inline-flex flex-col items-center gap-1 ${className ?? ''}`}>
       <span className="inline-flex items-center gap-2">
-        <bdi lang="fa" dir="rtl" className={`fa-text ${sizeClasses[size]}`}>{fa}</bdi>
+        <bdi lang="fa" dir="rtl" className={`fa-text ${sizeClasses[size]}`}>{displayFa}</bdi>
         {showSpeak && (
           <button
             type="button"
             onClick={() => pronouncePersian(textToSpeak)}
             aria-label="Hear an approximate, computer-generated pronunciation"
             title={voiceAvailable ? 'Approximate pronunciation (computer-generated)' : 'No pronunciation available for this text'}
-            className="shrink-0 rounded-full p-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] disabled:opacity-30"
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand)] transition-colors hover:brightness-105 disabled:bg-transparent disabled:text-[var(--color-ink-muted)] disabled:opacity-30"
             disabled={!voiceAvailable}
           >
             <SpeakerIcon />
@@ -60,9 +64,10 @@ export function PersianText({ fa, translit, size = 'md', forceShowTranslit, show
 
 function SpeakerIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
-      <path d="M16.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M19 6a9 9 0 0 1 0 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   )
 }

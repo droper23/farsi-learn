@@ -273,6 +273,20 @@ export function ProgressSettings() {
               className="h-5 w-5"
             />
           </label>
+          <label className="flex items-center justify-between gap-3 py-2">
+            <span className="text-sm">
+              Show vowel marks
+              <span className="block text-xs text-[var(--color-ink-muted)]">
+                Short-vowel diacritics (اَ اِ اُ) that ordinary Persian writing normally leaves out
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={settings?.showDiacritics ?? false}
+              onChange={(e) => updateSettings({ showDiacritics: e.target.checked })}
+              className="h-5 w-5 shrink-0"
+            />
+          </label>
           <label className="flex items-center justify-between py-2">
             <span className="text-sm">Reduce motion</span>
             <input

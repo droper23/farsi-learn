@@ -108,8 +108,42 @@ further down are kept for history.
 
 Driven by `farsi-learn-review-2026-09-01.md`, an autonomous read-only review
 that audited the whole app and produced a prioritized findings list, plus
-direct follow-up requests during the same session. 222 automated tests now
+direct follow-up requests during the same session. 229 automated tests now
 (up from 166), `npm run typecheck`/`lint`/`build` all clean.
+
+**Follow-up fixes/additions in the same session, after initial fifth-pass wrap-up:**
+- **iOS Safari audio fix.** `edge-tts`'s raw output is a 24kHz MPEG-2 Layer
+  III MP3 with no Xing/VBR header (ffprobe has to *estimate* its duration
+  instead of reading it) — desktop browsers tolerate this, but it's a known
+  cause of silent playback failure on iOS Safari's stricter
+  AVFoundation-based decoder. `scripts/generate_audio.py` now re-encodes
+  every clip through ffmpeg into a standard 44.1kHz MP3 immediately after
+  generation; all 543 existing clips were re-encoded in place.
+- **Bigger, more visible speak buttons.** `PersianText`'s 🔊 button was a
+  tiny (~16px icon, hover-only) affordance — easy to miss and, on touch
+  devices with no hover state, easy to mistake for broken audio. It's now a
+  44px filled circular button matching `ListeningRunner`'s style, always
+  visible.
+- **Transliteration on Persian MCQ answer options** and **Dictionary
+  defaults to an A-Z word list** — see below, same session.
+- **Short-vowel diacritics (harakat/e'rab) — optional overlay.** Persian
+  is normally written without short vowels; `src/content/diacriticsManifest.ts`
+  (plain fa text -> diacritized fa text) is a first-pass, LLM-authored
+  mapping covering the alphabet's example words and ~300 of ~390
+  vocabulary items, shown via `PersianText` when the new "Show vowel
+  marks" setting (`SettingsRow.showDiacritics`, default off) is on —
+  falls back to plain text for anything not yet covered (all sentences,
+  a handful of words with no hidden vowel to mark). Like the rest of this
+  project's LLM-authored content, not yet spot-checked by a native
+  speaker; `diacriticsManifest.test.ts` at least structurally guards it —
+  every value must contain a genuine diacritic mark, and stripping the
+  *added* marks (fatha/damma/kasra/shadda/sukun, not tanwin, which is
+  already standard spelling) from a value must recover its key exactly,
+  so a typo that drops/changes a base letter fails the test suite rather
+  than shipping silently. Kasra (a small below-baseline mark) is legible
+  at the alphabet screens' larger sizes but quite subtle in dense list
+  views at default text size — an inherent property of the mark at small
+  sizes, not a bug.
 
 - **Real pronunciation audio, finally.** The single biggest gap: audio
   previously depended entirely on the browser's `speechSynthesis`, and
