@@ -117,4 +117,17 @@ export const basicsSentences: ExampleSentence[] = [
     ],
     grammarConceptIds: ['g-nouns-plurals'], vocabIds: ['fam-baradar', 'fam-khahar', 'verb-dashtan'], confidence: 'high-confidence',
   },
+  {
+    id: 's-zwnj-bacheha', fa: 'بچه‌ها در خانه هستند.', translit: 'bache-hā dar khāne hastand.', en: 'The children are at home.',
+    register: 'neutral', level: 1, literalEn: 'children in home are',
+    words: [
+      { fa: 'بچه‌ها', translit: 'bache-hā', en: 'children', vocabId: 'fam-bache' },
+      { fa: 'در', translit: 'dar', en: 'in / at' },
+      { fa: 'خانه', translit: 'khāne', en: 'home', vocabId: 'home-khane' },
+      { fa: 'هستند', translit: 'hastand', en: 'are' },
+    ],
+    grammarConceptIds: ['g-orthography-zwnj', 'g-nouns-plurals'], vocabIds: ['fam-bache', 'home-khane'],
+    notes: 'بچه‌ها is written with a ZWNJ between the noun and the -ها plural suffix, not a full space or no space at all.',
+    confidence: 'high-confidence',
+  },
 ]

@@ -115,6 +115,20 @@ export const grammarFocusSentences: ExampleSentence[] = [
     grammarConceptIds: ['g-relative-clauses'], vocabIds: ['conn-ke', 'fam-baradar'], confidence: 'high-confidence',
   },
   {
+    id: 's-relative-ketab', fa: 'کتابی که خریدم جدید است.', translit: 'ketābi ke kharidam jadid ast.',
+    en: 'The book that I bought is new.', register: 'neutral', level: 3,
+    literalEn: 'book-a that I-bought new is',
+    words: [
+      { fa: 'کتابی', translit: 'ketābi', en: 'a book', vocabId: 'sch-ketab' },
+      { fa: 'که', translit: 'ke', en: 'that / which', vocabId: 'conn-ke' },
+      { fa: 'خریدم', translit: 'kharidam', en: 'I bought', vocabId: 'verb-kharidan' },
+      { fa: 'جدید است', translit: 'jadid ast', en: 'is new', vocabId: 'adj-jadid' },
+    ],
+    grammarConceptIds: ['g-relative-clauses'], vocabIds: ['sch-ketab', 'conn-ke', 'verb-kharidan', 'adj-jadid'],
+    notes: 'که also relativizes things, not just people — the same single word covers "who", "which", and "that".',
+    confidence: 'high-confidence',
+  },
+  {
     id: 's-reported-speech', fa: 'او گفت که فردا می‌آید.', translit: 'u goft ke fardā miāyad.', en: 'He/She said that he/she is coming tomorrow.',
     register: 'formal', level: 4,
     words: [

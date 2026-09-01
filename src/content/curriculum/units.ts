@@ -25,6 +25,7 @@ export const units: Unit[] = [
     description: 'Short vowels, Persian digits, and the numbers 0–20 — the building blocks for reading real words.',
     grammarConceptIds: ['g-orthography-zwnj'],
     vocabIds: ['num-0', 'num-1', 'num-2', 'num-3', 'num-4', 'num-5', 'num-6', 'num-7', 'num-8', 'num-9', 'num-10'],
+    sentenceIds: ['s-zwnj-bacheha'],
     lessonCount: 2,
   },
   {
@@ -145,14 +146,14 @@ export const units: Unit[] = [
     id: 'u3-progressive-perfect', level: 3, order: 20, title: 'Right Now, and Already Done', titleFa: 'استمراری و نقلی',
     description: 'The progressive ("I am eating right now") and the present perfect ("I have already seen this").',
     grammarConceptIds: ['g-progressive', 'g-present-perfect'],
-    sentenceIds: ['s-pres-progressive', 's-past-perfect'],
+    sentenceIds: ['s-pres-progressive', 's-past-perfect', 's-pres-progressive-khandan', 's-present-perfect-negative'],
     lessonCount: 2,
   },
   {
     id: 'u3-clauses', level: 3, order: 21, title: 'Connecting Ideas with که', titleFa: 'جملات وابسته',
     description: 'Build longer sentences using که to connect and describe.',
     grammarConceptIds: ['g-relative-clauses'],
-    sentenceIds: ['s-relative-ke'],
+    sentenceIds: ['s-relative-ke', 's-relative-ketab'],
     lessonCount: 1,
   },
   {

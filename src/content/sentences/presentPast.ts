@@ -79,6 +79,18 @@ export const presentTenseSentences: ExampleSentence[] = [
     grammarConceptIds: ['g-progressive'], vocabIds: ['pron-man', 'food-ghaza', 'verb-khordan'],
     notes: 'داشتن + present tense marks an action happening right now — more emphatic than the plain present.', confidence: 'high-confidence',
   },
+  {
+    id: 's-pres-progressive-khandan', fa: 'او دارد کتاب می‌خواند.', translit: 'u dārad ketāb mikhānad.',
+    en: 'He/she is reading a book right now.', register: 'colloquial', level: 3, literalEn: 'he/she has book reads',
+    words: [
+      { fa: 'او', translit: 'u', en: 'he/she', vocabId: 'pron-oo' },
+      { fa: 'دارد', translit: 'dārad', en: '(progressive marker)' },
+      { fa: 'کتاب', translit: 'ketāb', en: 'book', vocabId: 'sch-ketab' },
+      { fa: 'می‌خواند', translit: 'mikhānad', en: 'reads / is reading', vocabId: 'verb-khandan' },
+    ],
+    grammarConceptIds: ['g-progressive'], vocabIds: ['pron-oo', 'sch-ketab', 'verb-khandan'],
+    confidence: 'high-confidence',
+  },
 ]
 
 export const pastTenseSentences: ExampleSentence[] = [
@@ -124,6 +136,19 @@ export const pastTenseSentences: ExampleSentence[] = [
       { fa: 'دیده‌ام', translit: 'dide-am', en: 'I have seen', vocabId: 'verb-didan' },
     ],
     grammarConceptIds: ['g-present-perfect', 'g-object-marker-ra'], vocabIds: ['pron-man', 'verb-didan'],
+    confidence: 'high-confidence',
+  },
+  {
+    id: 's-present-perfect-negative', fa: 'او هرگز به ایران نرفته است.', translit: 'u hargez be irān narafte ast.',
+    en: 'He/she has never been to Iran.', register: 'formal', level: 3, literalEn: 'he/she never to Iran not-gone is',
+    words: [
+      { fa: 'او', translit: 'u', en: 'he/she', vocabId: 'pron-oo' },
+      { fa: 'هرگز', translit: 'hargez', en: 'never' },
+      { fa: 'به ایران', translit: 'be irān', en: 'to Iran' },
+      { fa: 'نرفته است', translit: 'narafte ast', en: 'has not gone', vocabId: 'verb-raftan' },
+    ],
+    grammarConceptIds: ['g-present-perfect', 'g-negation'], vocabIds: ['pron-oo', 'verb-raftan'],
+    notes: 'Present perfect negates the same way as other tenses built on the past participle: نـ prefixes the participle (رفته -> نرفته).',
     confidence: 'high-confidence',
   },
   {
