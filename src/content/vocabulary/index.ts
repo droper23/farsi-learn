@@ -17,6 +17,7 @@ import { discourseMarkersVocab, idiomsVocab } from './upperIntermediate'
 import { weatherVocab } from './weatherNature'
 import { bodyHealthVocab } from './bodyHealth'
 import { workTechVocab } from './workTech'
+import { calendarVocab } from './calendar'
 
 export const vocabulary: VocabItem[] = [
   ...greetingsVocab,
@@ -48,6 +49,7 @@ export const vocabulary: VocabItem[] = [
   ...weatherVocab,
   ...bodyHealthVocab,
   ...workTechVocab,
+  ...calendarVocab,
 ]
 
 const vocabById = new Map(vocabulary.map((v) => [v.id, v]))

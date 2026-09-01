@@ -116,9 +116,19 @@ export const units: Unit[] = [
   },
   {
     id: 'u2-time-dates', level: 2, order: 16, title: 'Numbers, Time & Dates', titleFa: 'زمان و تاریخ',
-    description: 'Tell time, name the days of the week, and count past twenty.',
-    vocabIds: ['num-20', 'num-30', 'num-40', 'num-50', 'num-100', 'num-1000', 'time-saat', 'time-daghighe', 'time-chandsaate', 'time-shanbe', 'time-yekshanbe', 'time-doshanbe', 'time-seshanbe', 'time-chaharshanbe', 'time-panjshanbe', 'time-jome', 'time-hafte', 'time-mah', 'time-sal'],
-    lessonCount: 2,
+    description: 'Tell time, name the days of the week, count past twenty, and learn the twelve Persian calendar months.',
+    vocabIds: [
+      'num-20', 'num-30', 'num-40', 'num-50', 'num-100', 'num-1000', 'time-saat', 'time-daghighe', 'time-chandsaate',
+      'time-shanbe', 'time-yekshanbe', 'time-doshanbe', 'time-seshanbe', 'time-chaharshanbe', 'time-panjshanbe', 'time-jome',
+      'time-hafte', 'time-mah', 'time-sal',
+      // NEW (Pass 4): the 12 Solar Hijri month names — previously absent
+      // from the vocabulary entirely (only a stray mention in a `notes`
+      // string on time-noruz) despite dates otherwise being covered. See
+      // content/vocabulary/calendar.ts and lib/persianCalendar.ts.
+      'date-farvardin', 'date-ordibehesht', 'date-khordad', 'date-tir', 'date-mordad', 'date-shahrivar',
+      'date-mehr', 'date-aban', 'date-azar', 'date-dey', 'date-bahman', 'date-esfand',
+    ],
+    lessonCount: 3,
   },
   {
     id: 'u2-travel', level: 2, order: 17, title: 'Getting Around: Travel & Directions', titleFa: 'سفر و مسیر',

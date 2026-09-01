@@ -11,6 +11,8 @@ import { alphabet } from '../content/alphabet'
 import { findSentence } from '../content/sentences'
 import { findGrammarConcept } from '../content/grammar'
 import { units } from '../content/curriculum/units'
+import { persianDigits } from '../content/alphabet'
+import { todaySolarHijri, persianMonthName, persianMonthNameFa } from '../lib/persianCalendar'
 import { useAsyncData } from '../hooks/useAsyncData'
 import { useMilestoneBanner } from '../hooks/useMilestoneBanner'
 import { PageHeader } from '../components/shared/PageHeader'
@@ -139,6 +141,8 @@ export function Dashboard() {
           </Card>
         </div>
 
+        <TodaysPersianDate />
+
         {mistakes.data && mistakes.data.length > 0 && (
           <Card>
             <p className="mb-3 text-sm font-medium text-[var(--color-ink)]">Recent mix-ups</p>
@@ -160,4 +164,34 @@ export function Dashboard() {
       </div>
     </div>
   )
+}
+
+/** A small "today's date, in the calendar Iran actually uses" widget — a
+ *  genuinely daily-use hook tying the app to the learner's real life, not
+ *  just curriculum practice. Computed client-side via the pure
+ *  lib/persianCalendar converter (no network/date-service dependency);
+ *  recomputed once per mount, which is more than sufficient for a value
+ *  that only changes at local midnight. */
+function TodaysPersianDate() {
+  const today = todaySolarHijri()
+  return (
+    <Card className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-xs text-[var(--color-ink-muted)]">Today's date (Solar Hijri)</p>
+        <p className="text-sm font-medium">{today.day} {persianMonthName(today.month)} {today.year}</p>
+      </div>
+      <bdi lang="fa" dir="rtl" className="fa-text text-lg text-[var(--color-ink-muted)]">
+        {toPersianDigits(today.day)} {persianMonthNameFa(today.month)} {toPersianDigits(today.year)}
+      </bdi>
+    </Card>
+  )
+}
+
+// Reuses the app's already-verified digit glyphs (content/alphabet.ts
+// persianDigits) rather than a second hardcoded copy of the same ten
+// characters.
+const arabicIndicByDigit = new Map(persianDigits.map((d) => [d.digit, d.arabicIndicDigit]))
+
+function toPersianDigits(n: number): string {
+  return String(n).replace(/[0-9]/g, (d) => arabicIndicByDigit.get(d) ?? d)
 }
