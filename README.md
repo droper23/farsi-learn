@@ -76,9 +76,12 @@ data under `src/content/`:
 src/content/
   types.ts            # the shape of every content type (see below)
   alphabet.ts          # all 32 letters, short vowels, digits
-  vocabulary/*.ts       # ~340 words, grouped by topic file, aggregated in index.ts
+  vocabulary/*.ts       # ~400 words, grouped by topic file, aggregated in index.ts
   sentences/*.ts        # example sentences with word-by-word breakdowns
   grammar/concepts.ts    # grammar concepts (explanation + linked examples)
+  passages/              # Level 6 reading passages (title + ordered sentence
+                          # ids + comprehension questions — composed from
+                          # already-glossed ExampleSentences, not raw text)
   curriculum/
     levels.ts            # the 6 CEFR-ish levels
     units.ts              # units within each level, referencing the above by id
@@ -206,12 +209,17 @@ run. It only activates if you create your own free Firebase project:
    how they're stored); real protection comes from the Firestore rule
    above, not from hiding the config.
 
-Sync is deliberately manual and explicit (**Upload** / **Download** buttons),
-not automatic background merging — with a review history that's small, "pick
-a direction and copy everything" is simpler and safer than a merge algorithm
-that could silently drop data by getting a heuristic wrong. The Firebase SDK
-is loaded via dynamic `import()`, so none of this costs bytes or a network
-request for anyone who doesn't configure it.
+Sync is deliberately manual and explicit (two buttons, no automatic
+background sync) but **merges per-record** rather than overwriting one side
+wholesale: `reviewStates`/`savedItems`/`unitProgress` use last-write-wins by
+an `updatedAt` timestamp, `learningEvents` is a dedup'd append-only union,
+and `settings` merges by newer `updatedAt` except `longestStreak`, which
+always takes the max of both sides so a personal best can never regress.
+Both buttons converge the device and the cloud to the same merged state
+either direction — see `src/storage/backup.ts` (`mergePayloads`, unit
+tested) and `src/auth/sync.ts`. The Firebase SDK is loaded via dynamic
+`import()`, so none of this costs bytes or a network request for anyone who
+doesn't configure it.
 
 ---
 
@@ -258,12 +266,21 @@ broken "play" button — see `ListeningRunner.tsx` and `hasPersianVoice()`.
 - `src/components/exercises/ListeningRunner.test.tsx` — the listening
   exercise's no-Persian-voice text fallback vs. normal play/replay flow.
 - `src/a11y.test.tsx` — an automated axe-core accessibility pass over the
-  dashboard, onboarding, the Persian keyboard, and an MCQ exercise runner.
+  dashboard, onboarding, the Persian keyboard, an MCQ exercise runner, the
+  dictionary browse-by-category view, and the Stats screen.
+- `src/lib/dailyPlan.test.ts`, `src/lib/mastery.test.ts`,
+  `src/lib/milestones.test.ts` — pure-function unit tests for the daily-plan
+  recommendation, per-category/letter/streak mastery stats, and milestone
+  computation (all derived from existing SRS/progress data, no new tracking).
+- `src/storage/backup.test.ts` — the conflict-aware sync merge logic
+  (`mergePayloads`): per-record last-write-wins, never dropping a record
+  that exists on only one side, plus legacy-backup import compatibility.
 - `src/App.test.tsx` — renders the real app against a real (fake-indexeddb)
   database and drives the dashboard, unit map, alphabet detail, dictionary
-  search, onboarding, and **a complete lesson start-to-finish** through
-  actual UI interactions and real exercise grading. This is the project's
-  substitute for a scripted manual QA pass.
+  search **and browse-by-category**, onboarding, the goal-aware daily-plan
+  card, and **a complete lesson start-to-finish** (including a Level 6
+  reading-passage lesson) through actual UI interactions and real exercise
+  grading. This is the project's substitute for a scripted manual QA pass.
 
 `npm run audit:content` (not part of `npm run test`) prints a
 confidence-grouped content report — see "The content-quality system" above.
@@ -288,11 +305,12 @@ src/
 
 ## What's incomplete / needs follow-up
 
-See `PROGRESS.md` for a detailed, current handoff — in short: Levels 1–4 of
-the curriculum have real, substantial content; Levels 5–6 (upper-intermediate
-and advanced) are seeded with a small amount of content and clearly need
-expansion. A handful of colloquial expressions/idioms are marked
-`confidence: 'needs-review'` and should be spot-checked by a Persian speaker
-before being fully trusted (`npm run audit:content` for the full list). The
-accessibility pass is automated-only (axe-core) so far, not manually
-screen-reader-tested; cloud sync is upload/download, not a real merge.
+See `PROGRESS.md` for a detailed, current handoff — in short: all six levels
+now have real, substantial content (Levels 5–6 were built out in the third
+pass, including a `Passage` content type for glossed reading passages with
+comprehension questions). A couple of colloquial expressions/idioms are
+marked `confidence: 'needs-review'` and should be spot-checked by a Persian
+speaker before being fully trusted (`npm run audit:content` for the full
+list). The accessibility pass is automated-only (axe-core) so far, not
+manually screen-reader-tested. There's still no real recorded audio (see
+"Audio / pronunciation" above).

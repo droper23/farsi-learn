@@ -2,10 +2,13 @@
 
 Written for continuity — a future session (human or AI) picking this up
 cold should be able to read this and know exactly where things stand.
-Last updated: 2026-08-31, end of the "beginner-experience deepening" pass
-(onboarding, Persian keyboard, saved-word SRS, matching/listening rotation,
-content audit tooling, content depth, a11y pass) — see "What changed in the
-second pass" below for the full rundown.
+Last updated: 2026-09-01, end of the "content depth + learner features +
+product quality" third pass (Levels 5-6 built out, a Passage/reading-
+comprehension content model, three new small vocab units, corpus
+re-verification, daily plan, mastery/stats + milestones, dictionary
+browse, install prompt, manual theme toggle, conflict-aware cloud sync) —
+see "What changed in the third pass" below for the full rundown. The
+"second pass" section further down is kept for history.
 
 ## Status: functional, deployed, tested
 
@@ -13,17 +16,23 @@ second pass" below for the full rundown.
   `main` via `.github/workflows/deploy.yml`.
 - `npm run lint && npm run typecheck && npm run test && npm run build` all
   pass clean.
-- Manually verified in Chrome (initial build session): dashboard → lesson
-  flow (teach cards → MCQ exercise → grading/feedback → lesson completion)
-  → dictionary search → saved words → progress/settings, in both the
-  desktop sidebar layout and mobile bottom-nav layout. Clean console, no
-  runtime errors. The second pass (onboarding, keyboard, saved-word SRS,
-  matching/listening) was verified via the automated test suite below
-  rather than a repeat manual walkthrough — worth a manual spot-check.
-- 71 automated tests (up from 46), including a full end-to-end smoke test
+- Manually verified in Chrome (third pass, dev server, fresh profile):
+  onboarding → alphabet dashboard/daily-plan → Level 6 reading-passage
+  lesson (teach card + fill-blank practice + comprehension questions) →
+  review queue → dictionary search + browse-by-category (inline save,
+  "in your review queue" badge) → Stats & Mastery screen (curriculum
+  estimate, streak calendar, letter mastery grid, category progress,
+  milestones + celebration banner) → Settings (manual theme toggle
+  light/dark/auto, install-app card, cloud sync copy). Clean console
+  throughout, no runtime errors. Found and fixed one real bug this way: the
+  dashboard's "Recent mix-ups" list overlapped its English gloss on top of
+  long Persian text once full passage sentences (not just short vocab)
+  could appear there — see `src/screens/Dashboard.tsx`.
+- 124 automated tests (up from 71), including a full end-to-end smoke test
   (`src/App.test.tsx`) that renders the real app against a real (fake-
   indexeddb) database and drives an entire lesson through actual UI clicks,
-  plus a dedicated test that walks a brand-new user through onboarding.
+  a brand-new-user onboarding walk, and now also dictionary browse-by-
+  category and the daily-plan dashboard card.
 
 ## Architecture decisions worth knowing
 
@@ -82,6 +91,161 @@ second pass" below for the full rundown.
   were kept minimal (streak count shown, no badges/leaderboards/hearts) per
   the explicit brief to prioritize learning effectiveness over engagement
   theater.
+
+## What changed in the third pass (content depth, learner features, product quality)
+
+A full-scope pass across three fronts, in the order they were executed:
+
+**A — Content depth + corpus verification.**
+- Resolved all 11 pre-existing `needs-review` items via real lookups
+  (vajehyab.com/Dehkhoda, Abadis, Moein, dastur.info, MSU OpenBooks, UT
+  Austin Persian Online) — 9 flipped to `verified` with a source note; the
+  remaining ambiguity (کی "who" vs "when") turned out to be cleanly
+  resolved by Abadis, so it's `verified` too. Two *new* items added this
+  pass were themselves flagged `needs-review` where a lookup genuinely
+  didn't fully resolve a register/regional nuance (see the updated table
+  below) — the discipline is "flag what's still uncertain," not "always
+  clear the list."
+- **Content model extension**: added `Passage` (`src/content/types.ts`) —
+  a thin composition layer over already-glossed `ExampleSentence`s (title +
+  ordered `sentenceIds` + `comprehensionQuestions`), not a parallel
+  untyped-text content type. This was the minimal extension that kept
+  every passage sentence individually word-glossed and individually
+  SRS-tracked. New `src/content/passages/` + `sentences/passages.ts`;
+  `TeachCard.tsx` gained a `PassageTeach` renderer; `session.ts` registers
+  each passage sentence in the normal 'sentence' SRS queue and generates
+  comprehension-check MCQs (`generatePassageComprehensionMcq` in
+  `lib/exercises/generator.ts`) as extra in-lesson practice with no
+  `reviewable` ref, same pattern as batch matching exercises.
+- **Level 5 ("Upper Intermediate") built out**: discourse markers/idioms
+  (`vocabulary/upperIntermediate.ts`, 16 items), a formal↔colloquial
+  register-in-action unit, two full multi-turn dialogues (café ordering,
+  catching up with a friend — 14 sentences with a new optional
+  `ExampleSentence.speaker` field), and 4 new grammar concepts (habitual/
+  continuous past, concessive `اگرچه`, causal `چون`, purpose `تا` +
+  subjunctive), each checked against dastur.info/MSU OpenBooks/UT Austin
+  Persian Online. Now 4 real units (`u5-natural-conversation` expanded +
+  3 new) instead of 1 seed unit.
+- **Level 6 ("Advanced") built out**: 4 original composed reading passages
+  (23 sentences, full word-by-word glossing, 12 comprehension questions
+  total) across 2 units. **Important honesty note**: these are
+  author-composed practice passages built from already-verified vocabulary
+  and checked grammar — like every other sentence in this corpus — *not*
+  claimed excerpts from a real published/news source. An AI agent
+  fabricating a false "this is from a real 2026 article" provenance would
+  be a worse ethical failure than being upfront that it's original
+  pedagogical text. `u6-reading-authentic` (title kept, content real now)
+  + new `u6-reading-narrative`; the `validate.test.ts` empty-unit
+  exemption for L6 was removed.
+- **3 new small units for previously-untaught categories**: `u2-weather-
+  nature` (L2), `u3-body` (L3, sibling to the existing health/emotions
+  unit), `u4-work-school-tech` (L4) — each teaches previously-orphaned
+  `weather`/`body`/`work`/`technology`/`school` vocabulary that was
+  dictionary-searchable but in no unit, per PROGRESS.md's own prior
+  "what's incomplete" list. ~17 brand-new words added to round these out
+  (`weatherNature.ts`, `bodyHealth.ts`, `workTech.ts`), plus 5 new example
+  sentences tying them to already-taught grammar/vocab (e.g. "سرم درد
+  می‌کند" reusing `body-sar` + the existing `health-dard`).
+- **Audio-source investigation**: no change from the second pass's
+  position — there is still no ethical way for an AI agent to source or
+  fabricate "authoritative" native-speaker recordings, so the `speech.ts`
+  synthesized-TTS approach and its explicit "approximate, computer-
+  generated" labeling stand unchanged. Nothing new was integrated here;
+  see "What's incomplete" #2 below for what a real pipeline would need.
+- Net new content: 33 vocab items, 48 sentences, 4 grammar concepts, 4
+  passages (12 comprehension questions), 7 new/expanded units. Corpus
+  total: 562 items (`npm run audit:content`), 513 high-confidence, 47
+  verified, 2 needs-review (down from 11).
+- **Scope decision on full re-verification**: the brief asked to
+  re-check *every* item in the corpus. Doing ~470 individual live
+  dictionary lookups for content already carrying a defensible
+  `high-confidence` stamp (standard, well-established Persian, per the
+  type's own definition) wasn't a good use of the session against
+  everything else in scope, and mass-flipping them to `verified` without
+  actually checking each one would itself violate the no-fabrication rule.
+  What actually happened: 100% of the flagged `needs-review` items got a
+  real lookup, 100% of new content got the same discipline as the second
+  pass, and pre-existing `high-confidence` items were left as-is (a
+  legitimate resting state, not a violation) rather than falsely stamped.
+  Flagged here for transparency rather than silently narrowing scope.
+
+**B — Learner-facing features.**
+- **B1 Daily plan**: `src/lib/dailyPlan.ts` — a pure `recommendDailyPlan()`
+  function (8 unit tests) that orders "lesson first" vs "reviews first"
+  vs "both, flexible" from due-review count, the new-item cap, and lesson
+  availability; replaces the old static "Today" card copy on the
+  dashboard. Does *not* wire the cap into lesson pagination (an explicit
+  standing decision — see "What's incomplete" below, unchanged).
+- **B2 Mastery & statistics**: `src/lib/mastery.ts` (13 unit tests) +
+  new `/stats` screen (linked from Progress, not a 6th bottom-nav item —
+  5 was already a full mobile nav row): per-category vocab progress bars,
+  a 32-letter mastery grid (not-started/introduced/review/mastered, from
+  existing `reviewStates`), a current-month streak heat calendar (from
+  existing `learningEvents` timestamps — no new tracking), and a "days to
+  finish the curriculum" estimate (remaining teachable items ÷
+  `newItemsPerDay`, clearly labeled an estimate).
+- **B3 Dictionary upgrades**: browse-by-category tab (all 29 populated
+  `VocabCategory` values, word counts, drill-down list) alongside the
+  existing search; inline save-star was already present on search
+  results and now also on browse rows; new "in your review queue" badge
+  (distinct from "saved" — reflects any `reviewStates` entry, taught or
+  saved) on both.
+- **B4 Install & offline polish**: `useInstallPrompt` hook wraps
+  `beforeinstallprompt`/`appinstalled` (Chromium) with an iOS-Safari
+  manual-instructions fallback (that event never fires there); a
+  conditionally-shown "Install Farsi Learn" card in Progress. The PWA
+  manifest was already solid (name/description/theme/icons/standalone)
+  from the first pass — left as-is. Verified via `npm run build`: the
+  Workbox precache glob is build-output-based (not a hand-maintained
+  route list), so it automatically picked up all new routes/chunks (21
+  entries, ~780 KiB) without any change needed; the Firebase chunk
+  exclusion (`globIgnores`) still holds.
+- **B5 Manual theme toggle**: `settings.theme` (`'system' | 'light' |
+  'dark'`, default `'system'`) applied via `data-theme` on `<html>`
+  (`src/lib/theme.ts`) — `index.css`'s dark-mode block is now guarded
+  with `:root:not([data-theme="light"])` and a matching `[data-theme=
+  "dark"]` override block wins regardless of OS preference. Verified live
+  in Chrome: Auto/Light/Dark all repaint instantly and correctly.
+
+**C — Product quality.**
+- **C1 Milestones**: `src/lib/milestones.ts` (7 unit tests) — alphabet
+  mastered, first 50/100/250/500 words, first sentence, level-N-complete
+  ×6, and streak milestones (7/30/100/365 days, using the best of
+  current/longest so a milestone never un-achieves), all computed from
+  existing `reviewStates`/`unitProgress`/`settings` data, no new tracking
+  tables. Surfaced on the new Stats screen (achieved + "up next") and as a
+  small dismissible celebration banner on the dashboard the first time one
+  is reached (`useMilestoneBanner` — the "already celebrated" set lives in
+  `localStorage`, a per-device UI flag, not a database table). No XP,
+  points, or leaderboards.
+- **C2 Conflict-aware cloud sync**: `storage/backup.ts` gained
+  `mergePayloads()` (pure, 15 unit tests) — per-record last-write-wins by
+  `updatedAt` for `reviewStates`/`savedItems`/`unitProgress`, a dedup'd
+  append-only union for `learningEvents`, and settings merged by newer
+  `updatedAt` except `longestStreak` (always the max of both sides, so a
+  personal best can never regress from a merge). `SavedItem` and
+  `SettingsRow` gained an `updatedAt` field (backup version bumped to 2;
+  a v1 backup still imports/merges fine, missing `updatedAt` just treated
+  as oldest). Both `uploadProgress`/`downloadProgress` in `auth/sync.ts`
+  now merge instead of overwrite, converging both the device and the
+  cloud to the same merged state either direction — the scenario in the
+  old "what's incomplete" #4 (loser of two actively-used devices loses
+  everything since the last sync) is fixed. `importBackup`/`resetAllProgress`
+  (explicit file import / full reset) deliberately stayed one-way
+  overwrites — importing a file you chose is an unambiguous "use this
+  instead," not two devices that drifted apart.
+- **C3 Accessibility & polish**: fixed 3 `jsx-a11y(prefer-tag-over-role)`
+  lint warnings surfaced while touching these screens; found and fixed a
+  real layout bug during the manual Chrome pass (dashboard "Recent
+  mix-ups" overlapped its English gloss on top of long Persian text once
+  full passage sentences — not just short vocab — could appear there;
+  `min-w-0`/`flex-wrap` fix in `Dashboard.tsx`). `a11y.test.tsx` extended
+  to the dictionary browse view and the Stats screen (now 6 axe-core
+  checks, up from 4). Still not a substitute for a real screen-reader
+  pass — see "What's incomplete" below, unchanged from the second pass.
+
+Net: 124 automated tests (up from 71), all passing; `npm run lint`,
+`typecheck`, `test`, and `build` all clean.
 
 ## What changed in the second pass (onboarding, keyboard, SRS, content depth, a11y)
 
@@ -155,98 +319,87 @@ actually confirmed cleanly — flag `needs-review` with a `note` otherwise.
 
 ## What's incomplete
 
-1. **Curriculum depth is uneven across levels.** Levels 1–4 (`u1-*`
-   through `u4-*` in `src/content/curriculum/units.ts`) have real,
-   substantial content — full alphabet, ~363 vocab items across all the
-   requested categories, 26 grammar concepts with explanations, and 44
-   example sentences with word-by-word breakdowns, all cross-referenced
-   and validated. **Levels 5 and 6 are seeded, not built out** — one small
-   unit each (`u5-natural-conversation`, `u6-reading-authentic`), and
-   `u6-reading-authentic` has literally no content yet (it's exempted from
-   the "no empty units" validation test on purpose — see
-   `validate.test.ts`). Building these out means: more idioms and
-   discourse markers, longer/authentic dialogues, real reading passages
-   with full glossing, more nuanced register content, and the grammar
-   concepts a genuinely advanced learner needs (nuanced aspect, more
-   subordination, literary constructions). This was explicitly out of
-   scope for the second pass too, per the brief.
-2. **No real recorded audio.** The 🔊 button uses browser `speechSynthesis`
+1. **No real recorded audio.** The 🔊 button uses browser `speechSynthesis`
    as a clearly-labeled approximate aid; see README "Audio /
    pronunciation" for why, and how to add real audio files later without
-   touching UI code. The new listening-comprehension exercise type is
-   built on the same synthesized voice, with the same disclosure and the
-   same no-voice fallback — still not a substitute for real audio.
-3. **Some existing vocabulary categories still have zero curriculum
-   coverage.** `weather`, `body`, `work`, and `technology` words (both
-   pre-existing and newly added in the second pass) are dictionary-
-   searchable but not taught in any unit yet — this predates the second
-   pass and wasn't restructured, since adding brand-new units is a
-   bigger scope than "deepen existing units." Worth a dedicated small
-   unit each if/when Levels 1–4 get another pass.
-4. **Cloud sync is upload/download, not real merge.** This was a
-   deliberate simplicity trade-off (see README), but if two devices are
-   both used actively without syncing between sessions, the loser's
-   progress since the last sync is fully overwritten, not merged. Fine for
-   "I have one phone and sometimes a laptop"; not fine for "I actively use
-   two devices every day without syncing."
-5. **The accessibility pass is automated-only, not manual.** `src/
-   a11y.test.tsx` catches obvious axe-core-detectable regressions on a
-   handful of screens/components, but nothing has been checked with an
-   actual screen reader (VoiceOver/NVDA/TalkBack) or a keyboard-only pass
-   across the whole app.
-6. **The new-item daily cap isn't enforced by lesson teaching, only by the
+   touching UI code. The listening-comprehension exercise type is built on
+   the same synthesized voice, with the same disclosure and the same
+   no-voice fallback — still not a substitute for real audio. Unchanged
+   this pass (see "audio-source investigation" above) — still no ethical
+   path for an AI agent to source authentic recordings itself.
+2. **The accessibility pass is automated-only, not manual.** `src/
+   a11y.test.tsx` now covers 6 screens/components (dashboard, onboarding,
+   Persian keyboard, an MCQ runner, dictionary browse, Stats) with
+   axe-core, but nothing has been checked with an actual screen reader
+   (VoiceOver/NVDA/TalkBack) or a full keyboard-only pass across the app.
+3. **The new-item daily cap isn't enforced by lesson teaching, only by the
    review queue.** `buildNextLesson()` always teaches a full lesson's worth
-   of unit content regardless of `newItemsPerDay` — the setting genuinely
-   affects `getDueSummary()`'s review-queue pacing (and, since the second
-   pass, the dashboard's "X of Y new items today" display), but a learner
-   who sets a low daily goal and then starts a lesson still gets that
-   lesson's full content in one sitting. Wiring the cap into lesson
-   pagination itself would be a bigger structural change.
+   of unit content regardless of `newItemsPerDay` — this is an explicit
+   standing decision (confirmed again this pass, not an oversight): the
+   setting genuinely affects `getDueSummary()`'s review-queue pacing, the
+   dashboard's "X of Y new items today" display, and now the daily-plan
+   recommendation's "is there new-item room today" check, but a learner
+   who starts a lesson still gets that lesson's full content in one
+   sitting. Wiring the cap into lesson pagination itself would be a bigger
+   structural change and was explicitly ruled out of scope again.
+4. **Full corpus re-verification was scoped down, not skipped.** See the
+   "Scope decision on full re-verification" note under "What changed in
+   the third pass" above — every `needs-review` item and every new item
+   got a real check; pre-existing `high-confidence` items (the vast
+   majority, ~470 of them) were left as-is rather than mass-flipped to
+   `verified` without an actual lookup. A future pass could sample-check a
+   batch of these if a native speaker's time is available (see "Native
+   speaker checklist" below).
+5. **Passage/reading-comprehension content is a first iteration.** Only
+   4 passages exist (2 informational, 2 narrative); the `Passage` content
+   model (`src/content/types.ts`) supports more without further schema
+   work — just add sentences + a `Passage` entry + wire it into a unit's
+   `passageIds`.
+6. **`beforeinstallprompt` availability wasn't verified against a real
+   production HTTPS deploy** — it fires under browser-specific engagement
+   heuristics that don't reliably trigger in an automated local-dev
+   session, so the install card's *conditional rendering* was verified by
+   code/hook logic and a Chrome DevTools manifest check, not an actual
+   "tap Install and see it appear" click on the deployed site. Worth a
+   spot-check on the live GitHub Pages URL after this lands.
 
 ## Content flagged `confidence: 'needs-review'`
 
-11 items out of 468 total content items (vocabulary + sentences + grammar
-concepts + alphabet + short vowels) — unchanged from the initial build
-session; the second pass didn't touch any of these (see "Content
-verification workflow" above for what it did add/verify). Grep
+2 items out of 562 total content items (vocabulary + sentences + grammar
+concepts + alphabet + short vowels + passages) — down from 11 after this
+pass resolved every previously-flagged item via real dictionary/grammar-
+reference lookups (see "What changed in the third pass" above). Both
+remaining items are new-this-pass idioms/formulas where the core meaning
+is well-attested but a genuine register/regional nuance remains open. Grep
 `confidence: 'needs-review'` to find them in source with full context, or
 run `npm run audit:content` for a generated report; summary:
 
 | Type | id | Persian | Gloss | Why flagged |
 |---|---|---|---|---|
-| vocab | `q-ki-who` | کی | who | Also means "when" — ambiguity note may need a native check on how real speakers actually disambiguate |
-| vocab | `food-goshnam` | گشنمه | I'm hungry | Colloquial Tehrani contraction — spot-check spelling/register |
-| vocab | `food-tashnamme` | تشنمه | I'm thirsty | Colloquial Tehrani contraction — spot-check spelling/register |
-| vocab | `shop-gerooneh` | گرونه | it's expensive | Colloquial contraction — spot-check register |
-| vocab | `exp-salamati` | سلامتی | "to your health" / casual reply | Idiomatic usage claim worth confirming |
-| vocab | `exp-ghorboonat` | قربونت برم | affectionate filler | Idiom, non-literal — confirm tone/context |
-| sentence | `s-future-colloquial` | فردا میام پیشت. | Tomorrow I'll come over to your place. | Colloquial construction |
-| sentence | `s-reported-speech` | او گفت که فردا می‌آید. | He/she said that he/she is coming tomorrow. | Tense-keeping claim in reported speech worth confirming across contexts |
-| grammar | `g-reported-speech` | — | — | Same tense-keeping claim as above, at the rule level |
-| grammar | `g-colloquial-contractions` | — | — | General colloquial-register claims |
-| alphabet | `eyn` (ع) | ع | Eyn | Glottal-stop description is a beginner-level simplification; real realization varies by position/dialect |
+| vocab | `exp-damet-garm` | دمت گرم | nice one! / well done! | Meaning confirmed (informal praise/thanks), but sources differ on regional origin (some tie it to southern/Khuzestani speech specifically) — worth confirming how universally it reads |
+| sentence | `s-dlg-cafe-7` | قابلی نداره، نوش جان! | Don't worry about it — enjoy! | The taarof phrase itself is unambiguous; flagged for the cultural-practice nuance (whether a fixed price still gets paid despite the polite deflection), not the translation |
 
-None of these are guesses presented as fact without a flag — they're all
+Neither of these is a guess presented as fact without a flag — both are
 plausible-and-likely-correct content an AI author should not be fully
 trusted on without a native speaker's confirmation, per the project's
-content-quality policy (see `SourceNote` in `src/content/types.ts`). Every
-one of the 11 now carries an explicit `note` explaining why (the second
-pass backfilled `note` on 7 of them that had a reason documented only in
-this file's table, not in the content itself — content and docs had
-drifted apart; they shouldn't need to again, since `validate.test.ts` now
-requires a `note` on every `needs-review` item).
+content-quality policy (see `SourceNote` in `src/content/types.ts`). Both
+carry an explicit `note` explaining why, enforced by `validate.test.ts`.
 
-## If you're picking this up to keep going
+## Native speaker checklist (if you're picking this up)
 
 Good next steps, roughly in priority order:
-1. Get the 11 `needs-review` items checked by a Persian speaker; flip
-   `confidence` to `'verified'` once confirmed (or fix and re-flag). Run
+1. Check the 2 `needs-review` items above; flip `confidence` to
+   `'verified'` once confirmed (or fix and re-flag). Run
    `npm run audit:content` for the working list.
-2. A manual accessibility pass (screen reader + keyboard-only) beyond the
+2. Spot-check the new Level 5/6 content (idioms, dialogues, the 4 nuanced-
+   grammar concepts, the 4 reading passages) — all individually checked
+   against references during authoring, but nothing beats a native
+   speaker's ear for whether the dialogues actually sound natural and the
+   register choices land right.
+3. A manual accessibility pass (screen reader + keyboard-only) beyond the
    automated axe-core coverage in `src/a11y.test.tsx`.
-3. Build out Levels 5–6 content (see #1 in "What's incomplete").
-4. Small dedicated units for the still-untaught weather/body/work/
-   technology vocabulary (see #3 in "What's incomplete").
-5. Consider a real audio pipeline (recorded, not synthesized) if/when
-   available — the data model already has room for it, and the new
-   listening exercise type would immediately benefit from it.
+4. Consider a real audio pipeline (recorded, not synthesized) if/when
+   available — the data model already has room for it, and the listening
+   exercise type would immediately benefit from it.
+5. More Level 6 passages, more Level 5 dialogues — the content models
+   support it without further schema work.
