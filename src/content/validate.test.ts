@@ -3,6 +3,7 @@ import { vocabulary, findVocab } from './vocabulary'
 import { sentences, findSentence } from './sentences'
 import { grammar, findGrammarConcept } from './grammar'
 import { alphabet, findLetter, shortVowels } from './alphabet'
+import { passages, findPassage } from './passages'
 import { units } from './curriculum/units'
 import { levels } from './curriculum/levels'
 import type { ConfidenceStatus, SourceNote } from './types'
@@ -145,6 +146,39 @@ describe('grammar content', () => {
   })
 })
 
+describe('passage content', () => {
+  it('has no duplicate ids', () => {
+    expect(duplicates(passages.map((p) => p.id))).toEqual([])
+  })
+
+  it('every passage has a title and at least one sentence, and its sentenceIds resolve', () => {
+    for (const p of passages) {
+      expect(p.title.trim(), p.id).not.toBe('')
+      expect(p.sentenceIds.length, `${p.id} needs at least one sentence`).toBeGreaterThan(0)
+      for (const sid of p.sentenceIds) {
+        expect(findSentence(sid), `${p.id} sentenceIds -> missing ${sid}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('every comprehension question has a valid correctIndex into its own options', () => {
+    for (const p of passages) {
+      for (const q of p.comprehensionQuestions) {
+        expect(q.question.trim(), `${p.id} ${q.id}`).not.toBe('')
+        expect(q.options.length, `${p.id} ${q.id} needs options`).toBeGreaterThan(1)
+        expect(q.correctIndex, `${p.id} ${q.id} correctIndex out of range`).toBeGreaterThanOrEqual(0)
+        expect(q.correctIndex, `${p.id} ${q.id} correctIndex out of range`).toBeLessThan(q.options.length)
+      }
+    }
+  })
+
+  it('question ids are unique within a passage', () => {
+    for (const p of passages) {
+      expect(duplicates(p.comprehensionQuestions.map((q) => q.id)), p.id).toEqual([])
+    }
+  })
+})
+
 describe('curriculum content', () => {
   it('units have no duplicate ids', () => {
     expect(duplicates(units.map((u) => u.id))).toEqual([])
@@ -155,21 +189,35 @@ describe('curriculum content', () => {
     for (const u of units) expect(levelNums.has(u.level), u.id).toBe(true)
   })
 
-  it('unit content refs (alphabet/vocab/grammar/sentence) all point at real content', () => {
+  it('unit content refs (alphabet/vocab/grammar/sentence/passage) all point at real content', () => {
     for (const u of units) {
       for (const id of u.alphabetIds ?? []) expect(findLetter(id), `${u.id} alphabetIds -> missing ${id}`).toBeTruthy()
       for (const id of u.vocabIds ?? []) expect(findVocab(id), `${u.id} vocabIds -> missing ${id}`).toBeTruthy()
       for (const id of u.grammarConceptIds ?? []) expect(findGrammarConcept(id), `${u.id} grammarConceptIds -> missing ${id}`).toBeTruthy()
       for (const id of u.sentenceIds ?? []) expect(findSentence(id), `${u.id} sentenceIds -> missing ${id}`).toBeTruthy()
+      for (const id of u.passageIds ?? []) expect(findPassage(id), `${u.id} passageIds -> missing ${id}`).toBeTruthy()
     }
   })
 
-  it('no unit is entirely empty (except explicitly-seeded stub units)', () => {
-    const stubUnits = new Set(['u6-reading-authentic'])
+  it('no unit is entirely empty', () => {
+    // Levels 5-6 are now fully built out (content-depth pass), so the
+    // earlier exemption for the Level 6 seed unit no longer applies —
+    // every unit must carry real content.
     for (const u of units) {
-      if (stubUnits.has(u.id)) continue
-      const total = (u.alphabetIds?.length ?? 0) + (u.vocabIds?.length ?? 0) + (u.grammarConceptIds?.length ?? 0) + (u.sentenceIds?.length ?? 0)
+      const total = (u.alphabetIds?.length ?? 0) + (u.vocabIds?.length ?? 0) + (u.grammarConceptIds?.length ?? 0) + (u.sentenceIds?.length ?? 0) + (u.passageIds?.length ?? 0)
       expect(total, `${u.id} has no content at all`).toBeGreaterThan(0)
+    }
+  })
+
+  it('unit order values are unique within their level', () => {
+    const byLevel = new Map<number, number[]>()
+    for (const u of units) {
+      const list = byLevel.get(u.level) ?? []
+      list.push(u.order)
+      byLevel.set(u.level, list)
+    }
+    for (const [level, orders] of byLevel) {
+      expect(duplicates(orders), `level ${level} has duplicate unit order values`).toEqual([])
     }
   })
 })
@@ -214,5 +262,9 @@ describe('content confidence discipline', () => {
 
   it('every short vowel has a valid confidence, and needs-review items have a note', () => {
     expectValidConfidence(shortVowels, 'short-vowel')
+  })
+
+  it('every passage has a valid confidence, and needs-review items have a note', () => {
+    expectValidConfidence(passages, 'passage')
   })
 })

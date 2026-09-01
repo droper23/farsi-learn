@@ -132,10 +132,23 @@ export const units: Unit[] = [
     vocabIds: ['shop-maghaze', 'shop-bazar', 'shop-gheymat', 'shop-pool', 'shop-chandeh', 'shop-gerooneh', 'shop-taarof'],
     lessonCount: 2,
   },
+  {
+    // NEW (content-depth pass): weather/nature words existed in the corpus
+    // (colorsBodyNature.ts `natureVocab`, dictionary-searchable) but were
+    // taught in no unit — see PROGRESS.md. Placed at the end of Level 2:
+    // straightforward concrete nouns + short "the weather is ___" phrases
+    // fit a beginner, and by here the learner already has the adjectives
+    // (سرد/گرم from u2-adjectives-comparison) that combine with them.
+    id: 'u2-weather-nature', level: 2, order: 19, title: 'Weather & Nature', titleFa: 'آب و هوا و طبیعت',
+    description: 'Talk about the weather, the seasons, and the natural world around you.',
+    vocabIds: ['nat-khorshid', 'nat-mah', 'nat-setare', 'nat-darya', 'nat-kuh', 'nat-derakht', 'nat-gol', 'nat-baran', 'nat-barf', 'nat-bad', 'nat-havakhube', 'nat-havagarmast', 'nat-havasarde', 'nat-aftab', 'nat-abr', 'nat-dama', 'weath-toofan', 'weath-rotoobat', 'weath-daraje', 'weath-meh', 'weath-yakh', 'weath-fasl', 'weath-bahar', 'weath-tabestan', 'weath-paeez', 'weath-zemestan'],
+    sentenceIds: ['s-weather-cloudy-cold'],
+    lessonCount: 3,
+  },
 
   // ---------------------------------------------------------------- Level 3
   {
-    id: 'u3-modals', level: 3, order: 19, title: 'Can, Must, Want: Modals & Subjunctive', titleFa: 'وجه التزامی',
+    id: 'u3-modals', level: 3, order: 20, title: 'Can, Must, Want: Modals & Subjunctive', titleFa: 'وجه التزامی',
     description: 'Express ability, obligation, and desire — and meet the subjunctive that ties them together.',
     vocabIds: ['verb-tavanestan'],
     grammarConceptIds: ['g-modals', 'g-subjunctive'],
@@ -143,70 +156,128 @@ export const units: Unit[] = [
     lessonCount: 3,
   },
   {
-    id: 'u3-progressive-perfect', level: 3, order: 20, title: 'Right Now, and Already Done', titleFa: 'استمراری و نقلی',
+    id: 'u3-progressive-perfect', level: 3, order: 21, title: 'Right Now, and Already Done', titleFa: 'استمراری و نقلی',
     description: 'The progressive ("I am eating right now") and the present perfect ("I have already seen this").',
     grammarConceptIds: ['g-progressive', 'g-present-perfect'],
     sentenceIds: ['s-pres-progressive', 's-past-perfect', 's-pres-progressive-khandan', 's-present-perfect-negative'],
     lessonCount: 2,
   },
   {
-    id: 'u3-clauses', level: 3, order: 21, title: 'Connecting Ideas with که', titleFa: 'جملات وابسته',
+    id: 'u3-clauses', level: 3, order: 22, title: 'Connecting Ideas with که', titleFa: 'جملات وابسته',
     description: 'Build longer sentences using که to connect and describe.',
     grammarConceptIds: ['g-relative-clauses'],
     sentenceIds: ['s-relative-ke', 's-relative-ketab'],
     lessonCount: 1,
   },
   {
-    id: 'u3-register', level: 3, order: 22, title: 'Formal vs. Colloquial Persian', titleFa: 'رسمی و محاوره‌ای',
+    id: 'u3-register', level: 3, order: 23, title: 'Formal vs. Colloquial Persian', titleFa: 'رسمی و محاوره‌ای',
     description: 'Recognize the everyday spoken forms that differ from the formal Persian taught in most textbooks.',
     grammarConceptIds: ['g-register', 'g-colloquial-contractions', 'g-compound-verbs'],
     sentenceIds: ['s-colloquial-mikham', 's-future-colloquial', 's-compound-verb'],
     lessonCount: 2,
   },
   {
-    id: 'u3-health-emotions', level: 3, order: 23, title: 'Health & Emotions', titleFa: 'سلامتی و احساسات',
+    id: 'u3-health-emotions', level: 3, order: 24, title: 'Health & Emotions', titleFa: 'سلامتی و احساسات',
     description: 'Say how you feel, physically and emotionally.',
     vocabIds: ['health-doctor', 'health-bimarestan', 'health-daru', 'health-dard', 'health-mariz', 'health-halet-chetore', 'health-sardard', 'emo-eshgh', 'emo-negaran', 'emo-hayjan', 'emo-asabani', 'adj-khaste', 'adj-khoshhal', 'adj-narahat'],
+    lessonCount: 2,
+  },
+  {
+    // NEW (content-depth pass): body-part words existed in the corpus
+    // (colorsBodyNature.ts `bodyVocab`) but were taught in no unit, unlike
+    // health/emotions which already had u3-health-emotions — see
+    // PROGRESS.md. Placed right after health-emotions in Level 3 so the
+    // "my head hurts" sentences can lean on health-dard (already taught).
+    id: 'u3-body', level: 3, order: 25, title: 'Body & Health Vocabulary', titleFa: 'اعضای بدن',
+    description: "Name your body parts, and combine them with health/emotion words you've already learned (\"my head hurts\").",
+    vocabIds: ['body-sar', 'body-dast', 'body-pa', 'body-cheshm', 'body-gush', 'body-dahan', 'body-ghalb', 'body-bini', 'body-mo', 'body2-zanu', 'body2-shekam', 'body2-angosht', 'body2-poost', 'body2-ghadd'],
+    sentenceIds: ['s-body-headache', 's-body-hand-hurts'],
     lessonCount: 2,
   },
 
   // ---------------------------------------------------------------- Level 4
   {
-    id: 'u4-conditionals', level: 4, order: 24, title: 'If... Conditionals', titleFa: 'شرطی',
+    id: 'u4-conditionals', level: 4, order: 26, title: 'If... Conditionals', titleFa: 'شرطی',
     description: 'Real and hypothetical "if" sentences — and the tense shift that separates them.',
     grammarConceptIds: ['g-conditionals'],
     sentenceIds: ['s-conditional-real', 's-conditional-unreal'],
     lessonCount: 2,
   },
   {
-    id: 'u4-reported-speech', level: 4, order: 25, title: 'Reported Speech', titleFa: 'نقل قول',
+    id: 'u4-reported-speech', level: 4, order: 27, title: 'Reported Speech', titleFa: 'نقل قول',
     description: 'Report what someone else said, Persian-style.',
     grammarConceptIds: ['g-reported-speech'],
     sentenceIds: ['s-reported-speech'],
     lessonCount: 1,
   },
   {
-    id: 'u4-future-passive', level: 4, order: 26, title: 'The Future & Passive Voice', titleFa: 'آینده و مجهول',
+    id: 'u4-future-passive', level: 4, order: 28, title: 'The Future & Passive Voice', titleFa: 'آینده و مجهول',
     description: 'The formal future tense, and how Persian builds the passive voice.',
     grammarConceptIds: ['g-future'],
     sentenceIds: ['s-future-khaham', 's-passive'],
     lessonCount: 2,
   },
-
-  // ------------------------------------------------------- Levels 5 & 6
-  // These levels are intentionally seeded rather than fully built out —
-  // see PROGRESS.md "What's incomplete" for the expansion plan.
   {
-    id: 'u5-natural-conversation', level: 5, order: 27, title: 'Natural Conversation & Idioms', titleFa: 'مکالمه طبیعی',
-    description: 'A first pass at idiomatic, everyday expressions beyond textbook Persian. Seed content — expand with more idioms, discourse markers, and longer dialogues.',
-    vocabIds: ['exp-che-khabar', 'exp-salamati', 'exp-nooshejan', 'exp-dastodorost', 'exp-khastenabashid', 'exp-ghorboonat', 'exp-eshkali-nadare', 'exp-mishe'],
+    // NEW (content-depth pass): work/school/technology words existed in the
+    // corpus (workSchoolTech.ts) but were taught in no unit — see
+    // PROGRESS.md. Placed at Level 4 (Intermediate): enough grammar is in
+    // place by here (possession, ra, modals) to build real sentences about
+    // work life, not just isolated nouns.
+    id: 'u4-work-school-tech', level: 4, order: 29, title: 'Work, School & Technology', titleFa: 'کار، مدرسه و فناوری',
+    description: 'Talk about your job, your studies, and everyday technology — meetings, devices, and getting online.',
+    vocabIds: ['work-kar', 'work-shoghl', 'work-edare', 'work-daftar', 'work-rais', 'work-hoghugh', 'work-hamkar', 'verb-kar-kardan', 'work2-jalase', 'work2-shoghl-kardan', 'sch-madrese', 'sch-daneshgah', 'sch-daneshjoo', 'sch-moallem', 'sch-ostad', 'sch-kelas', 'sch-emtehan', 'sch-tamrin', 'sch2-madrak', 'tech-computer', 'tech-mobile', 'tech-internet', 'tech-email', 'tech-app', 'tech-akswapardazi', 'tech-ramzobur', 'tech2-sharj', 'tech2-vasl-shodan', 'tech2-fail'],
+    sentenceIds: ['s-work-meeting-tomorrow', 's-tech-phone-dead'],
+    lessonCount: 4,
+  },
+
+  // ---------------------------------------------------------------- Level 5
+  // "Upper Intermediate": idioms/discourse markers, register shifts, real
+  // multi-turn dialogues, and the nuanced-aspect/subordination grammar a
+  // genuinely mid-level learner needs. Reaching Level 5 means the app is no
+  // longer "beginner-only" — see PROGRESS.md for where UI copy was checked.
+  {
+    id: 'u5-natural-conversation', level: 5, order: 30, title: 'Natural Conversation: Discourse Markers & Idioms', titleFa: 'مکالمه طبیعی',
+    description: 'The small connective words (راستش, یعنی, خب...) that make spoken Persian sound natural, plus a few common idioms.',
+    vocabIds: ['exp-che-khabar', 'exp-salamati', 'exp-nooshejan', 'exp-dastodorost', 'exp-khastenabashid', 'exp-ghorboonat', 'exp-eshkali-nadare', 'exp-mishe', 'exp-rasti', 'exp-rastesh', 'exp-yani', 'exp-dar-vaghe', 'exp-behar-hal', 'exp-kholase', 'exp-belakhare', 'exp-aslan', 'exp-vaghean', 'exp-khob', 'exp-fekr-konam', 'exp-benazare-man', 'exp-masalan', 'exp-chizi-nist', 'exp-ab-zire-kah', 'exp-damet-garm', 'exp-sang-tamam'],
+    lessonCount: 3,
+  },
+  {
+    id: 'u5-register-shifts', level: 5, order: 31, title: 'Register in Action: Formal ↔ Colloquial', titleFa: 'رسمی و محاوره‌ای در عمل',
+    description: 'Beyond the Level 3 introduction: recognize and produce the same idea in both formal written Persian and everyday spoken Persian.',
+    grammarConceptIds: ['g-register', 'g-colloquial-contractions'],
+    sentenceIds: ['s-future-colloquial', 's-colloquial-mikham'],
+    lessonCount: 1,
+  },
+  {
+    id: 'u5-dialogues', level: 5, order: 32, title: 'Multi-Turn Dialogues', titleFa: 'مکالمات چند نفره',
+    description: 'Two full natural conversations — ordering at a café, and catching up with a friend — with every line individually glossed.',
+    sentenceIds: ['s-dlg-cafe-1', 's-dlg-cafe-2', 's-dlg-cafe-3', 's-dlg-cafe-4', 's-dlg-cafe-5', 's-dlg-cafe-6', 's-dlg-cafe-7', 's-dlg-catchup-1', 's-dlg-catchup-2', 's-dlg-catchup-3', 's-dlg-catchup-4', 's-dlg-catchup-5', 's-dlg-catchup-6', 's-dlg-catchup-7'],
     lessonCount: 2,
   },
   {
-    id: 'u6-reading-authentic', level: 6, order: 28, title: 'Reading Authentic Text', titleFa: 'خواندن متون اصیل',
-    description: 'A starting point for advanced reading practice. Seed content — expand with real news excerpts, literature, and longer passages with full glossing.',
-    grammarConceptIds: [],
-    sentenceIds: [],
-    lessonCount: 1,
+    id: 'u5-advanced-grammar', level: 5, order: 33, title: 'Nuanced Aspect & Subordination', titleFa: 'جنبه و جملات وابسته پیشرفته',
+    description: 'The habitual/continuous past, and three ways to subordinate a clause: although, because, and in order to.',
+    grammarConceptIds: ['g-imperfect-past', 'g-concessive-clauses', 'g-causal-clauses', 'g-purpose-clauses'],
+    sentenceIds: ['s-imperfect-habitual', 's-imperfect-child', 's-concessive-cold', 's-causal-tired', 's-purpose-traffic', 's-purpose-class'],
+    lessonCount: 3,
+  },
+
+  // ---------------------------------------------------------------- Level 6
+  // "Advanced": reading authentic-style text. See content/types.ts `Passage`
+  // for the content-model extension chosen for this (a thin composition
+  // layer over already-glossed ExampleSentences, not a parallel text blob),
+  // and content/sentences/passages.ts for why these are original composed
+  // passages rather than claimed excerpts from a real published source.
+  {
+    id: 'u6-reading-authentic', level: 6, order: 34, title: 'Reading Authentic Text: Everyday Life', titleFa: 'خواندن متون: زندگی روزمره',
+    description: 'Two informational reading passages — a day in Tehran, and the seasons in Iran — each with full word-by-word glossing and comprehension questions.',
+    passageIds: ['passage-tehran-life', 'passage-seasons-iran'],
+    lessonCount: 2,
+  },
+  {
+    id: 'u6-reading-narrative', level: 6, order: 35, title: 'Reading Authentic Text: Letters & Narrative', titleFa: 'خواندن متون: نامه و داستان',
+    description: 'A personal letter and a short story, both in a more literary register, with reported speech and subordinate clauses in real use.',
+    passageIds: ['passage-letter-friend', 'passage-old-man-garden'],
+    lessonCount: 2,
   },
 ]

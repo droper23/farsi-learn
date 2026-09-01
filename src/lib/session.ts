@@ -8,18 +8,20 @@ import { findLetter } from '../content/alphabet'
 import { findVocab, vocabulary } from '../content/vocabulary'
 import { findGrammarConcept } from '../content/grammar'
 import { findSentence, sentences } from '../content/sentences'
+import { findPassage } from '../content/passages'
 import type { Exercise } from './exercises/types'
 import {
   generateVocabMcq, generateVocabTypeAnswer, generateVocabMatching, generateVocabListening,
   generateLetterSoundMcq, generateLetterNameMcq, generateLetterPositionMcq,
   generateSentenceWordOrder, generateSentenceTranslationMcq, generateSentenceFillBlank,
   generateSentenceListening, generateCustomMcq, generateCustomTypeAnswer,
+  generatePassageComprehensionMcq,
   type ExerciseDifficultyHint,
 } from './exercises/generator'
 
 export interface TeachCard {
   step: 'teach'
-  contentType: ReviewableKind
+  contentType: ReviewableKind | 'passage'
   id: string
 }
 export interface ExerciseStep {
@@ -71,6 +73,7 @@ export function contentForLesson(unit: Unit, lessonIndex: number) {
     vocabIds: chunk(unit.vocabIds ?? [], unit.lessonCount, lessonIndex),
     grammarConceptIds: chunk(unit.grammarConceptIds ?? [], unit.lessonCount, lessonIndex),
     sentenceIds: chunk(unit.sentenceIds ?? [], unit.lessonCount, lessonIndex),
+    passageIds: chunk(unit.passageIds ?? [], unit.lessonCount, lessonIndex),
   }
 }
 
@@ -187,6 +190,17 @@ export async function buildNextLesson(): Promise<LessonPlan | null> {
     steps.push({ step: 'teach', contentType: 'sentence', id })
     await getOrCreateReviewState('sentence', id, now)
   }
+  // Reading passages (Level 6): one teach card shows the whole passage (its
+  // sentences are already individually SRS-tracked below), followed by its
+  // comprehension-check questions as extra practice.
+  for (const id of content.passageIds) {
+    const passage = findPassage(id)
+    if (!passage) continue
+    steps.push({ step: 'teach', contentType: 'passage', id })
+    for (const sid of passage.sentenceIds) {
+      await getOrCreateReviewState('sentence', sid, now)
+    }
+  }
 
   // Practice: one pass over everything just taught, scaffolded difficulty.
   const allTaught: Array<{ kind: ReviewableKind; id: string }> = [
@@ -194,10 +208,20 @@ export async function buildNextLesson(): Promise<LessonPlan | null> {
     ...content.vocabIds.map((id) => ({ kind: 'vocab' as const, id })),
     ...content.grammarConceptIds.map((id) => ({ kind: 'grammar' as const, id })),
     ...content.sentenceIds.map((id) => ({ kind: 'sentence' as const, id })),
+    ...content.passageIds.flatMap((id) => (findPassage(id)?.sentenceIds ?? []).map((sid) => ({ kind: 'sentence' as const, id: sid }))),
   ]
   for (const { kind, id } of allTaught) {
     const ex = await exerciseForReviewable(kind, id, 'scaffolded')
     if (ex) steps.push({ step: 'exercise', exercise: ex })
+  }
+
+  // Comprehension-check questions for any passages just taught.
+  for (const id of content.passageIds) {
+    const passage = findPassage(id)
+    if (!passage) continue
+    for (const q of passage.comprehensionQuestions) {
+      steps.push({ step: 'exercise', exercise: generatePassageComprehensionMcq(passage.id, q) })
+    }
   }
 
   // Matching exercises are a strong fit for a batch of freshly-introduced

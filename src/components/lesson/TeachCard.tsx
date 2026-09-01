@@ -3,12 +3,13 @@ import { findLetter } from '../../content/alphabet'
 import { findVocab } from '../../content/vocabulary'
 import { findGrammarConcept } from '../../content/grammar'
 import { findSentence } from '../../content/sentences'
+import { findPassage } from '../../content/passages'
 import { PersianText } from '../shared/PersianText'
 import { Card } from '../shared/Card'
 import { Button } from '../shared/Button'
 
 interface Props {
-  contentType: ReviewableKind
+  contentType: ReviewableKind | 'passage'
   id: string
   onContinue: () => void
 }
@@ -20,6 +21,7 @@ export function TeachCard({ contentType, id, onContinue }: Props) {
       {contentType === 'vocab' && <VocabTeach id={id} />}
       {contentType === 'grammar' && <GrammarTeach id={id} />}
       {contentType === 'sentence' && <SentenceTeach id={id} />}
+      {contentType === 'passage' && <PassageTeach id={id} />}
       <Button onClick={onContinue} fullWidth>Got it</Button>
     </div>
   )
@@ -96,6 +98,9 @@ function SentenceTeach({ id }: { id: string }) {
   if (!s) return null
   return (
     <Card className="flex flex-col items-center gap-3 text-center">
+      {s.speaker && (
+        <span className="self-start rounded-full bg-[var(--color-surface-raised)] px-2 py-0.5 text-xs font-medium text-[var(--color-ink-muted)]">{s.speaker}</span>
+      )}
       <PersianText fa={s.fa} translit={s.translit} size="lg" showSpeak />
       <p className="text-base font-medium">{s.en}</p>
       {s.literalEn && <p className="text-xs text-[var(--color-ink-muted)]">Literally: {s.literalEn}</p>}
@@ -104,6 +109,37 @@ function SentenceTeach({ id }: { id: string }) {
           <div key={i} className="text-center">
             <bdi lang="fa" dir="rtl" className="fa-text block text-base">{w.fa}</bdi>
             <p className="text-xs text-[var(--color-ink-muted)]">{w.en}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+function PassageTeach({ id }: { id: string }) {
+  const p = findPassage(id)
+  if (!p) return null
+  const sentences = p.sentenceIds.map(findSentence).filter((s): s is NonNullable<typeof s> => !!s)
+  return (
+    <Card className="flex flex-col gap-4">
+      <div className="text-center">
+        <p className="text-lg font-semibold">{p.title}</p>
+        {p.titleFa && <bdi lang="fa" dir="rtl" className="fa-text block text-base text-[var(--color-ink-muted)]">{p.titleFa}</bdi>}
+        <span className="mt-1 inline-block rounded-full bg-[var(--color-warn-soft)] px-2 py-0.5 text-xs">{p.register}</span>
+      </div>
+      <div className="flex flex-col gap-4">
+        {sentences.map((s) => (
+          <div key={s.id} className="rounded-xl bg-[var(--color-surface-raised)] p-3">
+            <PersianText fa={s.fa} translit={s.translit} size="sm" showSpeak />
+            <p className="mt-1 text-sm font-medium">{s.en}</p>
+            <div className="mt-2 flex flex-wrap gap-2 border-t border-[var(--color-border)] pt-2">
+              {s.words.map((w, i) => (
+                <div key={i} className="text-center">
+                  <bdi lang="fa" dir="rtl" className="fa-text block text-sm">{w.fa}</bdi>
+                  <p className="text-[10px] text-[var(--color-ink-muted)]">{w.en}</p>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>

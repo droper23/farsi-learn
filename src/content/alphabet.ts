@@ -227,7 +227,7 @@ export const alphabet: AlphabetLetter[] = [
     soundDescription: 'A glottal stop (the catch in your throat in "uh-oh") in most positions, sometimes nearly silent between vowels. One of the trickier letters for English speakers; it is not a vowel itself but often sits next to one.',
     englishSoundHint: 'the catch in "uh-oh"',
     exampleWords: [{ fa: 'بعد', translit: "ba'd", en: 'after' }, { fa: 'ساعت', translit: "sā'at", en: 'hour / clock' }],
-    category: 'consonant', confidence: 'needs-review', note: 'Precise realization of ع varies by position/dialect; the glottal-stop description is a simplification appropriate for beginners.',
+    category: 'consonant', confidence: 'verified', note: 'Confirmed against Persian Language Online (persianlanguageonline.com/alphabet/ain) and general Persian phonology references: in modern (Iranian) Persian ع is realized as a glottal stop or brief glottal constriction, unlike the pharyngeal consonant of Arabic — the beginner-level "catch in uh-oh" description matches the standard characterization, though exact realization does vary by position/dialect as noted.',
   },
   {
     id: 'gheyn', order: 22, name: 'Gheyn', nameFa: 'غین',

@@ -168,6 +168,46 @@ export interface ExampleSentence extends SourceNote {
   grammarConceptIds?: string[]
   vocabIds?: string[]
   notes?: string
+  /** Who says this line, for multi-turn dialogues (e.g. "Barista", "Sara").
+   *  Omitted for standalone (non-dialogue) example sentences. */
+  speaker?: string
+}
+
+// ---------------------------------------------------------------------------
+// Reading passages (Level 6 — advanced reading)
+// ---------------------------------------------------------------------------
+
+/** A single comprehension-check question about a Passage. Deliberately a
+ *  plain English MCQ (not a new exercise runner) — it's generated straight
+ *  into a `McqExercise` with no `reviewable` ref, the same way multi-item
+ *  matching exercises are extra in-lesson practice rather than an SRS-
+ *  tracked item. The passage's *sentences* are what carry the long-term SRS
+ *  state (each already reused as an ordinary `ExampleSentence`). */
+export interface PassageQuestion {
+  id: string
+  question: string
+  /** English answer choices; `correctIndex` points at the right one. */
+  options: string[]
+  correctIndex: number
+}
+
+/** A short reading passage composed from existing, already-vetted
+ *  `ExampleSentence`s (in order) rather than a new blob of untyped text —
+ *  this keeps every sentence individually glossed word-by-word (reusing
+ *  `SentenceWord`) and individually SRS-tracked, while letting the passage
+ *  itself carry a title and comprehension questions. This is the minimal
+ *  extension chosen for Level 6 "read authentic text" content: a thin
+ *  composition layer over the existing sentence model, not a parallel
+ *  content type with its own glossing/validation logic. */
+export interface Passage extends SourceNote {
+  id: string
+  title: string
+  titleFa?: string
+  level: CEFRLevel
+  register: Register
+  /** Ordered `ExampleSentence` ids that make up the passage's body text. */
+  sentenceIds: string[]
+  comprehensionQuestions: PassageQuestion[]
 }
 
 // ---------------------------------------------------------------------------
@@ -227,6 +267,8 @@ export interface Unit {
   vocabIds?: string[]
   grammarConceptIds?: string[]
   sentenceIds?: string[]
+  /** Advanced reading passages (Level 6) — see `Passage`. */
+  passageIds?: string[]
   /** Roughly how many short lessons this unit is split into. The lesson
    *  engine paginates the unit's content pool into this many sittings. */
   lessonCount: number

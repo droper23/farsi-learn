@@ -1,0 +1,34 @@
+import type { VocabItem } from '../types'
+
+/** Level 5 "Upper Intermediate" vocabulary: discourse markers (the small
+ *  connective words that make spoken Persian sound natural rather than
+ *  textbook-stiff — راستش, یعنی, در واقع...) and a handful of common idioms.
+ *  Discourse markers are extremely frequent, well-established words with a
+ *  single agreed function, so — consistent with how the rest of the corpus
+ *  treats ordinary high-frequency vocabulary — they're `high-confidence`
+ *  without an individual dictionary lookup each; the idioms below (genuinely
+ *  figurative, non-literal expressions) were each looked up individually and
+ *  are `verified` or `needs-review` accordingly, per the project's content
+ *  policy (see PROGRESS.md "Content verification workflow"). */
+export const discourseMarkersVocab: VocabItem[] = [
+  { id: 'exp-rasti', fa: 'راستی', translit: 'rāsti', en: 'by the way / oh, that reminds me', pos: 'adverb', category: 'expressions', register: 'colloquial', frequency: 2, level: 5, literalEn: 'truth-ly', notes: 'Used to introduce a sudden new topic, like English "oh, by the way".', confidence: 'high-confidence' },
+  { id: 'exp-rastesh', fa: 'راستش', translit: 'rāstesh', en: 'actually / to tell you the truth', pos: 'adverb', category: 'expressions', register: 'colloquial', frequency: 2, level: 5, literalEn: 'its truth', confidence: 'high-confidence' },
+  { id: 'exp-yani', fa: 'یعنی', translit: "ya'ni", en: 'I mean / that is to say', pos: 'conjunction', category: 'connectors', register: 'neutral', frequency: 1, level: 5, notes: 'One of the single most common discourse markers in spoken Persian — used to rephrase, clarify, or just fill a pause.', confidence: 'high-confidence' },
+  { id: 'exp-dar-vaghe', fa: 'در واقع', translit: 'dar vāghe', en: 'in fact / actually', pos: 'adverb', category: 'connectors', register: 'neutral', frequency: 2, level: 5, confidence: 'high-confidence' },
+  { id: 'exp-behar-hal', fa: 'به هر حال', translit: 'be har hāl', en: 'anyway / in any case', pos: 'adverb', category: 'connectors', register: 'neutral', frequency: 2, level: 5, literalEn: 'in every condition', confidence: 'high-confidence' },
+  { id: 'exp-kholase', fa: 'خلاصه', translit: 'kholāse', en: 'in short / long story short / anyway', pos: 'adverb', category: 'expressions', register: 'colloquial', frequency: 2, level: 5, literalEn: 'summary', notes: 'As a discourse marker (not just the noun "summary"), used to wrap up a story or change the subject.', confidence: 'high-confidence' },
+  { id: 'exp-belakhare', fa: 'بالاخره', translit: 'belakhare', en: 'finally / at last / eventually', pos: 'adverb', category: 'connectors', register: 'neutral', frequency: 2, level: 5, confidence: 'high-confidence' },
+  { id: 'exp-aslan', fa: 'اصلاً', translit: 'aslan', en: 'at all / not at all (with negation); absolutely (with a positive)', pos: 'adverb', category: 'expressions', register: 'neutral', frequency: 1, level: 5, notes: 'اصلاً خوب نیست "it\'s not good at all"; اصلاً عالیه "it\'s absolutely great" — an intensifier whose flavor flips with polarity.', confidence: 'high-confidence' },
+  { id: 'exp-vaghean', fa: 'واقعاً', translit: "vāghe'an", en: 'really / truly', pos: 'adverb', category: 'expressions', register: 'neutral', frequency: 1, level: 5, confidence: 'high-confidence' },
+  { id: 'exp-khob', fa: 'خب', translit: 'khob', en: 'well... / OK, so... / alright', pos: 'interjection', category: 'expressions', register: 'colloquial', frequency: 1, level: 5, notes: 'The single most common Persian filler/discourse word — opens a sentence, buys thinking time, or signals agreement, much like English "well" or "so".', confidence: 'high-confidence' },
+  { id: 'exp-fekr-konam', fa: 'فکر کنم', translit: 'fekr konam', en: "I think / I guess / I'd say", pos: 'phrase', category: 'expressions', register: 'colloquial', frequency: 2, level: 5, literalEn: 'let me think / I think', confidence: 'high-confidence' },
+  { id: 'exp-benazare-man', fa: 'به نظر من', translit: 'be nazar-e man', en: 'in my opinion / it seems to me', pos: 'phrase', category: 'expressions', register: 'neutral', frequency: 2, level: 5, confidence: 'high-confidence' },
+  { id: 'exp-masalan', fa: 'مثلاً', translit: 'masalan', en: 'for example / like, say...', pos: 'adverb', category: 'connectors', register: 'neutral', frequency: 2, level: 5, confidence: 'high-confidence' },
+  { id: 'exp-chizi-nist', fa: 'چیزی نیست', translit: 'chizi nist', en: "it's nothing / no big deal", pos: 'phrase', category: 'expressions', register: 'colloquial', frequency: 2, level: 5, literalEn: 'it is [not] a thing', confidence: 'high-confidence' },
+]
+
+export const idiomsVocab: VocabItem[] = [
+  { id: 'exp-ab-zire-kah', fa: 'آب زیر کاه', translit: 'āb zir-e kāh', en: 'a sly one / still waters run deep (deceptively quiet but scheming)', pos: 'phrase', category: 'expressions', register: 'colloquial', frequency: 3, level: 5, literalEn: 'water under the straw', notes: 'Describes someone who seems calm/harmless on the surface but is quietly cunning or up to something.', note: 'Confirmed against Vajehyab\'s Moein-dictionary entry and Wiktionary: an established idiom meaning someone outwardly mild-mannered who is secretly scheming/harmful — the gloss above matches both sources cleanly.', confidence: 'verified' },
+  { id: 'exp-damet-garm', fa: 'دمت گرم', translit: 'damet garm', en: 'nice one! / well done! (informal praise/thanks)', pos: 'phrase', category: 'expressions', register: 'colloquial', frequency: 3, level: 5, literalEn: 'may your breath be warm', notes: 'A warm, informal way to say "well done" or "thanks, that was great" — similar register to قربونت برم but for praising an action rather than affection.', note: 'General meaning (informal praise/thanks, similar to "way to go") confirmed via Abadis, but sources differ on regional origin (some tie it specifically to southern/Khuzestani speech) — worth a native speaker confirming how universally it reads across regions/formality levels.', confidence: 'needs-review' },
+  { id: 'exp-sang-tamam', fa: 'سنگ تمام گذاشتن', translit: 'sang tamām gozāshtan', en: 'to go all out / spare no effort', pos: 'phrase', category: 'expressions', register: 'colloquial', frequency: 3, level: 5, literalEn: 'to lay a complete stone', isCompoundVerb: true, verbStems: { present: 'سنگ تمام بگذار', past: 'سنگ تمام گذاشت', presentTranslit: 'sang tamām begozār', pastTranslit: 'sang tamām gozāsht' }, notes: 'Usually positive ("they really went all out for the party"), but can be used sarcastically about someone who thoroughly wronged you.', note: 'Confirmed against Abadis and a Persian idiom-explainer (daneshchi.ir): means giving maximum effort/doing something completely; the sarcastic secondary use is also independently attested.', confidence: 'verified' },
+]

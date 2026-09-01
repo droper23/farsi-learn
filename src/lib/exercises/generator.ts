@@ -1,5 +1,5 @@
 import type { AlphabetLetter } from '../../content/types'
-import type { VocabItem, ExampleSentence } from '../../content/types'
+import type { VocabItem, ExampleSentence, PassageQuestion } from '../../content/types'
 import { vocabulary } from '../../content/vocabulary'
 import { alphabet } from '../../content/alphabet'
 import type {
@@ -325,6 +325,26 @@ export function generateSentenceFillBlank(sentence: ExampleSentence): McqExercis
     promptFa: blankedFa, promptEn: sentence.en,
     options, correctOptionId: target.vocabId!,
     hints: [`Meaning of the sentence: ${sentence.en}`],
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reading passage comprehension (Level 6)
+// ---------------------------------------------------------------------------
+
+/** A passage comprehension question becomes a plain English MCQ with no
+ *  `reviewable` ref — like a matching-exercise batch, it's extra in-lesson
+ *  practice, not an SRS-tracked item (the passage's individual sentences
+ *  already carry that via the ordinary 'sentence' reviewable kind). */
+export function generatePassageComprehensionMcq(passageId: string, question: PassageQuestion): McqExercise {
+  const options: ExerciseOption[] = question.options.map((opt, i) => ({ id: `${question.id}-opt${i}`, en: opt }))
+  return {
+    id: exerciseId(`passage-q-${question.id}`), kind: 'mcq',
+    instructions: 'Answer based on the passage you just read',
+    promptEn: question.question,
+    options,
+    correctOptionId: `${question.id}-opt${question.correctIndex}`,
+    hints: [`This is a comprehension check for "${passageId}" — reread the passage if unsure.`],
   }
 }
 

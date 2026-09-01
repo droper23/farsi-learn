@@ -13,6 +13,10 @@ import { travelVocab, housingVocab } from './travelHousing'
 import { workVocab, schoolVocab, technologyVocab } from './workSchoolTech'
 import { healthVocab, emotionsVocab, shoppingVocab } from './healthEmotionsShopping'
 import { expressionsVocab, dailyActivitiesVocab } from './expressions'
+import { discourseMarkersVocab, idiomsVocab } from './upperIntermediate'
+import { weatherVocab } from './weatherNature'
+import { bodyHealthVocab } from './bodyHealth'
+import { workTechVocab } from './workTech'
 
 export const vocabulary: VocabItem[] = [
   ...greetingsVocab,
@@ -39,6 +43,11 @@ export const vocabulary: VocabItem[] = [
   ...shoppingVocab,
   ...expressionsVocab,
   ...dailyActivitiesVocab,
+  ...discourseMarkersVocab,
+  ...idiomsVocab,
+  ...weatherVocab,
+  ...bodyHealthVocab,
+  ...workTechVocab,
 ]
 
 const vocabById = new Map(vocabulary.map((v) => [v.id, v]))

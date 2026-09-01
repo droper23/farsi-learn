@@ -20,6 +20,7 @@ import { vocabulary } from '../src/content/vocabulary/index.ts'
 import { sentences } from '../src/content/sentences/index.ts'
 import { grammarConcepts } from '../src/content/grammar/concepts.ts'
 import { alphabet, shortVowels } from '../src/content/alphabet.ts'
+import { passages } from '../src/content/passages/index.ts'
 
 interface AuditRow {
   type: string
@@ -45,6 +46,9 @@ const rows: AuditRow[] = [
   })),
   ...shortVowels.map((v): AuditRow => ({
     type: 'short-vowel', id: v.id, fa: v.diacritic, gloss: v.name, confidence: v.confidence, note: v.note,
+  })),
+  ...passages.map((p): AuditRow => ({
+    type: 'passage', id: p.id, fa: p.titleFa ?? '—', gloss: p.title, confidence: p.confidence, note: p.note,
   })),
 ]
 

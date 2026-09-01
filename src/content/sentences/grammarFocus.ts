@@ -138,8 +138,8 @@ export const grammarFocusSentences: ExampleSentence[] = [
     ],
     grammarConceptIds: ['g-reported-speech'], vocabIds: ['pron-oo', 'verb-goftan', 'conn-ke'],
     notes: 'Unlike English, Persian reported speech usually keeps the original tense (no "backshift" to "was coming").',
-    note: 'Same tense-keeping claim as g-reported-speech, at the example-sentence level — worth confirming across more contexts than this one sentence.',
-    confidence: 'needs-review',
+    note: 'Confirmed against MSU OpenBooks "Basic Persian" (openbooks.lib.msu.edu) and general Persian-grammar references: Persian reported speech is not obligated to backshift the way English is — "او گفت که فردا می‌آید" keeping the present/future-referring می‌آید is a standard, natural construction.',
+    confidence: 'verified',
   },
   {
     id: 's-imperative-negative', fa: 'اینجا سیگار نکش!', translit: 'injā sigār nakesh!', en: "Don't smoke here!", register: 'colloquial', level: 2,
