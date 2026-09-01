@@ -3,6 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { db, DEFAULT_SETTINGS } from './storage/db'
+import { getOrCreateReviewState, recordReview } from './storage/progressRepo'
+import { PERSIAN_MONTH_NAMES } from './lib/persianCalendar'
 
 /**
  * End-to-end-ish smoke test: renders the real app (real IndexedDB via
@@ -81,6 +83,49 @@ describe('App smoke test', () => {
     // A brand-new (post-onboarding) account with no reviews due and a
     // lesson available should recommend starting with the lesson.
     expect(await screen.findByText(/Start with a lesson/i)).toBeInTheDocument()
+  })
+
+  it('shows today\'s Solar Hijri date widget on the dashboard (Pass 4 B3)', async () => {
+    render(<App />)
+    expect(await screen.findByText(/Today's date \(Solar Hijri\)/i)).toBeInTheDocument()
+    // Don't assert a specific date (the suite can run any day) — just that
+    // a real Persian month name shows up, proving the converter actually
+    // ran rather than rendering a placeholder.
+    const monthPattern = new RegExp(PERSIAN_MONTH_NAMES.join('|'))
+    expect(await screen.findByText(monthPattern)).toBeInTheDocument()
+  })
+
+  it('practices weak spots end to end from the Stats screen (Pass 4 B2)', async () => {
+    const user = userEvent.setup()
+    // Seed one item with a real lapse so it's flagged "weak" regardless of
+    // its (irrelevant here) due date. A single "again" on a brand-new item
+    // just stays in the learning steps (no lapse yet) — graduate it to
+    // "review" first (an "easy" rating graduates immediately), then fail
+    // it, which is what actually increments lapseCount / flips it to
+    // "relearning" per srs/scheduler.ts applyReview.
+    const now = Date.now()
+    await getOrCreateReviewState('vocab', 'greet-salam', now)
+    await recordReview('vocab', 'greet-salam', 'easy', true, now)
+    await recordReview('vocab', 'greet-salam', 'again', false, now + 1000)
+
+    render(<App />)
+    window.location.hash = '#/stats'
+    const practiceButton = await screen.findByRole('button', { name: /Practice weak spots/i })
+    await user.click(practiceButton)
+
+    expect(await screen.findByText(/Weak spots/i)).toBeInTheDocument()
+    // Whatever exercise shape came up, there should be a way to answer it
+    // and reach either the next question or the completion screen.
+    await waitFor(() => expect(screen.queryByText(/^Loading/i)).not.toBeInTheDocument())
+    const options = screen.queryAllByTestId('exercise-option')
+    const textInput = screen.queryByRole('textbox') as HTMLInputElement | null
+    if (options.length > 0) {
+      await user.click(options[0])
+      expect(await screen.findByRole('button', { name: /^Continue$/i })).toBeInTheDocument()
+    } else if (textInput) {
+      await user.type(textInput, 'x')
+      expect(await screen.findByRole('button', { name: /^Check$/i })).toBeInTheDocument()
+    }
   })
 
   it('completes a full lesson end to end from the dashboard', async () => {

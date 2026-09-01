@@ -165,9 +165,9 @@ no server storing your progress by default. See `src/storage/db.ts` for the
 schema (review states, saved words, a lightweight learning-event log for the
 "recent mistakes" widget, unit progress, settings).
 
-- **Backup/restore**: Progress → "Export backup (.json)" / "Import backup".
+- **Backup/restore**: Profile → "Export backup (.json)" / "Import backup".
   A plain JSON file you can keep anywhere.
-- **Reset**: Progress → "Reset all progress" (asks for confirmation first —
+- **Reset**: Profile → "Reset all progress" (asks for confirmation first —
   this is permanent for this browser).
 - Progress does **not** sync across devices/browsers unless you set up cloud
   sync below — a phone and a laptop are two separate local databases.
@@ -194,7 +194,7 @@ run. It only activates if you create your own free Firebase project:
    }
    ```
 6. Copy `.env.local.example` to `.env.local` and fill in the six
-   `VITE_FIREBASE_*` values, then rebuild — Progress → "Cloud sync" now
+   `VITE_FIREBASE_*` values, then rebuild — Profile → "Cloud sync" now
    shows a **Sign in with Google** button locally.
 7. To enable it on the deployed GitHub Pages site too: `.env.local` is
    gitignored and never reaches CI, so add the same six values as
@@ -256,10 +256,21 @@ broken "play" button — see `ListeningRunner.tsx` and `hasPersianVoice()`.
 - `src/lib/exercises/generator.test.ts` — exercise generation and grading
   (MCQ distractor uniqueness, typed-answer grading incl. Arabic/Persian
   keyboard letter variants, word-order shuffling, adaptive-difficulty rating,
-  listening-exercise generation/grading, custom-saved-entry generation).
+  listening-exercise generation/grading, custom-saved-entry generation,
+  conjugation MCQ/typed-answer exercises, and the grammar-rule self-check
+  MCQ including its "never picks a distractor from a related concept" rule).
 - `src/lib/session.test.ts` — matching exercises appear in new-vocab lesson
   batches of 4-6 (and don't for small/alphabet-only lessons); custom saved
-  entries resolve to a gradable exercise through `exerciseForReviewable`.
+  entries resolve to a gradable exercise through `exerciseForReviewable`;
+  `buildFocusedSession` ("practice weak spots") ignores due dates and
+  returns only lapsed/relearning/low-ease items, worst-first, excluding
+  suspended and brand-new items.
+- `src/lib/conjugation.test.ts` — the rule-based verb conjugation engine
+  against known forms across six verbs (a plain verb, a داشتن-family verb
+  that drops می‌, a compound verb, and بودن's irregular present copula).
+- `src/lib/persianCalendar.test.ts` — the Solar Hijri calendar converter
+  against jalaali-js's documented examples, publicly-reported Nowruz dates,
+  and a Gregorian→Hijri→Gregorian round trip across 1950-2060.
 - `src/components/exercises/TypeAnswerRunner.test.tsx` — the on-screen
   Persian keyboard composes an answer correctly (append, mid-string insert
   at the cursor, backspace, clear) and grades end-to-end.
@@ -278,7 +289,9 @@ broken "play" button — see `ListeningRunner.tsx` and `hasPersianVoice()`.
 - `src/App.test.tsx` — renders the real app against a real (fake-indexeddb)
   database and drives the dashboard, unit map, alphabet detail, dictionary
   search **and browse-by-category**, onboarding, the goal-aware daily-plan
-  card, and **a complete lesson start-to-finish** (including a Level 6
+  card, the dashboard's Solar Hijri date widget, a full "practice weak
+  spots" flow from the Stats screen through a graded exercise, and
+  **a complete lesson start-to-finish** (including a Level 6
   reading-passage lesson) through actual UI interactions and real exercise
   grading. This is the project's substitute for a scripted manual QA pass.
 
