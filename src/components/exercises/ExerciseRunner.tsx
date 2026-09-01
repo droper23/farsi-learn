@@ -3,6 +3,7 @@ import { McqRunner } from './McqRunner'
 import { TypeAnswerRunner } from './TypeAnswerRunner'
 import { WordOrderRunner } from './WordOrderRunner'
 import { MatchingRunner } from './MatchingRunner'
+import { ListeningRunner } from './ListeningRunner'
 
 interface Props {
   exercise: Exercise
@@ -22,5 +23,7 @@ export function ExerciseRunner({ exercise, onComplete }: Props) {
       return <WordOrderRunner key={exercise.id} exercise={exercise} onComplete={onComplete} />
     case 'matching':
       return <MatchingRunner key={exercise.id} exercise={exercise} onComplete={onComplete} />
+    case 'listening':
+      return <ListeningRunner key={exercise.id} exercise={exercise} onComplete={onComplete} />
   }
 }

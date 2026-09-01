@@ -66,6 +66,10 @@ export interface DueSummary {
   learningDue: ReviewState[]
   reviewDue: ReviewState[]
   newAvailable: ReviewState[]
+  /** Count of items introduced (moved out of "new") today, regardless of
+   *  their current state. Used both to cap how many new items are offered
+   *  and to show real "X of Y new items today" progress on the dashboard. */
+  introducedTodayCount: number
 }
 
 /** Split all known review states into learning-due / review-due / new,
@@ -85,13 +89,18 @@ export async function getDueSummary(now = Date.now()): Promise<DueSummary> {
     .sort((a, b) => b.lapseCount - a.lapseCount || a.dueAt - b.dueAt)
   const reviewDue = allReviewDue.slice(0, config.maxReviewsPerDay)
 
-  const introducedTodayCount = all.filter((s) => s.state === 'new' && introducedToday(s, now)).length
+  // `lastIntroducedDay` is stamped once, the moment an item's first rating
+  // moves it *out* of the 'new' state (see scheduler.ts `step`), and is
+  // never cleared — so an item introduced today is essentially never still
+  // 'new' by the time we check. Counting must NOT also require state ===
+  // 'new', or the daily new-item cap silently never triggers.
+  const introducedTodayCount = all.filter((s) => introducedToday(s, now)).length
   const remainingNewSlots = Math.max(0, config.newItemsPerDay - introducedTodayCount)
   const newAvailable = all
     .filter((s) => s.state === 'new')
     .slice(0, remainingNewSlots)
 
-  return { learningDue, reviewDue, newAvailable }
+  return { learningDue, reviewDue, newAvailable, introducedTodayCount }
 }
 
 export async function getRecentMistakes(limit = 10) {

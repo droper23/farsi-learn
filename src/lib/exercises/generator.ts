@@ -2,7 +2,10 @@ import type { AlphabetLetter } from '../../content/types'
 import type { VocabItem, ExampleSentence } from '../../content/types'
 import { vocabulary } from '../../content/vocabulary'
 import { alphabet } from '../../content/alphabet'
-import type { Exercise, ExerciseOption, McqExercise, TypeAnswerExercise, WordOrderExercise, MatchingExercise } from './types'
+import type {
+  Exercise, ExerciseOption, McqExercise, TypeAnswerExercise, WordOrderExercise, MatchingExercise,
+  ListeningExercise, CustomReviewableSource,
+} from './types'
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -98,6 +101,81 @@ export function generateVocabMatching(items: VocabItem[]): MatchingExercise {
     instructions: 'Match each Persian word to its meaning',
     pairs: items.slice(0, 6).map((v) => ({ id: v.id, fa: v.fa, translit: v.translit, en: v.en })),
     hints: [],
+  }
+}
+
+export function generateVocabListening(item: VocabItem, pool: VocabItem[] = vocabulary): ListeningExercise {
+  const distractorPool = pool.filter((v) => v.category === item.category && v.id !== item.id)
+  const fallbackPool = pool.filter((v) => v.id !== item.id)
+  const distractors = sample(distractorPool.length >= 3 ? distractorPool : fallbackPool, 3, (v) => v.id === item.id)
+  const options: ExerciseOption[] = shuffle([
+    { id: item.id, en: item.en },
+    ...distractors.map((d) => ({ id: d.id, en: d.en })),
+  ])
+  return {
+    id: exerciseId(`listen-vocab-${item.id}`), kind: 'listening',
+    reviewable: { kind: 'vocab', itemId: item.id },
+    instructions: 'Listen, then choose the meaning',
+    audioText: item.fa, audioTranslit: item.translit,
+    options, correctOptionId: item.id,
+    hints: buildVocabHints(item, 'en'),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Learner-authored saved entries (custom words with no vocabId — see
+// CustomReviewableSource / SavedItem). Distractors are drawn from the
+// general vocabulary pool since a custom entry has no category of its own.
+// ---------------------------------------------------------------------------
+
+export function generateCustomMcq(item: CustomReviewableSource, direction: 'fa-en' | 'en-fa', pool: VocabItem[] = vocabulary): McqExercise {
+  const distractors = sample(pool, 3, () => false)
+  const options: ExerciseOption[] = shuffle([
+    { id: item.id, en: item.en, fa: item.fa, translit: item.translit },
+    ...distractors.map((d) => ({ id: d.id, en: d.en, fa: d.fa, translit: d.translit })),
+  ])
+  const hints = [`Transliteration: ${item.translit}`, 'This is one of your own saved words (learner-added, not vetted content).']
+  if (direction === 'fa-en') {
+    return {
+      id: exerciseId(`mcq-custom-fa-en-${item.id}`), kind: 'mcq',
+      reviewable: { kind: 'custom', itemId: item.id },
+      instructions: 'Choose the correct meaning',
+      promptFa: item.fa, promptTranslit: item.translit,
+      options: options.map((o) => ({ id: o.id, en: o.en })),
+      correctOptionId: item.id,
+      hints,
+    }
+  }
+  return {
+    id: exerciseId(`mcq-custom-en-fa-${item.id}`), kind: 'mcq',
+    reviewable: { kind: 'custom', itemId: item.id },
+    instructions: 'Choose the correct Persian word',
+    promptEn: item.en,
+    options: options.map((o) => ({ id: o.id, fa: o.fa, translit: o.translit })),
+    correctOptionId: item.id,
+    hints,
+  }
+}
+
+export function generateCustomTypeAnswer(item: CustomReviewableSource, direction: 'fa-en' | 'en-fa'): TypeAnswerExercise {
+  const hints = ['This is one of your own saved words (learner-added, not vetted content).']
+  if (direction === 'fa-en') {
+    return {
+      id: exerciseId(`type-custom-fa-en-${item.id}`), kind: 'type-answer',
+      reviewable: { kind: 'custom', itemId: item.id },
+      instructions: 'Type the English meaning',
+      promptFa: item.fa, promptTranslit: item.translit,
+      answerLang: 'en', acceptedAnswers: [item.en],
+      hints,
+    }
+  }
+  return {
+    id: exerciseId(`type-custom-en-fa-${item.id}`), kind: 'type-answer',
+    reviewable: { kind: 'custom', itemId: item.id },
+    instructions: 'Type the Persian word',
+    promptEn: item.en,
+    answerLang: 'fa', acceptedAnswers: [item.fa],
+    hints,
   }
 }
 
@@ -202,6 +280,22 @@ export function generateSentenceTranslationMcq(sentence: ExampleSentence, pool: 
     reviewable: { kind: 'sentence', itemId: sentence.id },
     instructions: 'Choose the natural English translation',
     promptFa: sentence.fa, promptTranslit: sentence.translit,
+    options, correctOptionId: sentence.id,
+    hints: sentence.literalEn ? [`Literal: ${sentence.literalEn}`] : [],
+  }
+}
+
+export function generateSentenceListening(sentence: ExampleSentence, pool: ExampleSentence[]): ListeningExercise {
+  const distractors = sample(pool, 3, (s) => s.id === sentence.id || s.en === sentence.en)
+  const options: ExerciseOption[] = shuffle([
+    { id: sentence.id, en: sentence.en },
+    ...distractors.map((d) => ({ id: d.id, en: d.en })),
+  ])
+  return {
+    id: exerciseId(`listen-sentence-${sentence.id}`), kind: 'listening',
+    reviewable: { kind: 'sentence', itemId: sentence.id },
+    instructions: 'Listen, then choose the correct meaning',
+    audioText: sentence.fa, audioTranslit: sentence.translit,
     options, correctOptionId: sentence.id,
     hints: sentence.literalEn ? [`Literal: ${sentence.literalEn}`] : [],
   }

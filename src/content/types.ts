@@ -232,7 +232,12 @@ export interface Unit {
   lessonCount: number
 }
 
-export type ReviewableKind = 'alphabet' | 'vocab' | 'grammar' | 'sentence'
+/** 'custom' covers learner-authored saved entries with no `vocabId` (see
+ *  `SavedItem` in `src/storage/db.ts`) — they ride the same unified SRS
+ *  queue as everything else, keyed by the SavedItem's own id. Saved
+ *  entries that *do* have a `vocabId` reuse the ordinary 'vocab' kind
+ *  instead, since they already point at real, vetted content. */
+export type ReviewableKind = 'alphabet' | 'vocab' | 'grammar' | 'sentence' | 'custom'
 
 /** A globally unique key into the SRS store: `${kind}:${id}`. */
 export type ReviewableKey = `${ReviewableKind}:${string}`

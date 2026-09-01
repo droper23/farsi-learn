@@ -1,7 +1,7 @@
 import { db } from '../storage/db'
 import { getDueSummary, getOrCreateReviewState, getSchedulerConfig } from '../storage/progressRepo'
 import type { ReviewState } from '../srs/types'
-import type { ReviewableKind } from '../content/types'
+import type { ReviewableKind, VocabItem } from '../content/types'
 import { allUnitsSorted, findUnit } from '../content/curriculum'
 import type { Unit } from '../content/types'
 import { findLetter } from '../content/alphabet'
@@ -10,9 +10,11 @@ import { findGrammarConcept } from '../content/grammar'
 import { findSentence, sentences } from '../content/sentences'
 import type { Exercise } from './exercises/types'
 import {
-  generateVocabMcq, generateVocabTypeAnswer, generateLetterSoundMcq, generateLetterNameMcq,
-  generateLetterPositionMcq, generateSentenceWordOrder, generateSentenceTranslationMcq,
-  generateSentenceFillBlank, type ExerciseDifficultyHint,
+  generateVocabMcq, generateVocabTypeAnswer, generateVocabMatching, generateVocabListening,
+  generateLetterSoundMcq, generateLetterNameMcq, generateLetterPositionMcq,
+  generateSentenceWordOrder, generateSentenceTranslationMcq, generateSentenceFillBlank,
+  generateSentenceListening, generateCustomMcq, generateCustomTypeAnswer,
+  type ExerciseDifficultyHint,
 } from './exercises/generator'
 
 export interface TeachCard {
@@ -82,14 +84,32 @@ function difficultyFor(state: ReviewState): ExerciseDifficultyHint {
   return 'standard'
 }
 
-export function exerciseForReviewable(kind: ReviewableKind, itemId: string, difficulty: ExerciseDifficultyHint): Exercise | null {
+/** Generates one exercise for a reviewable item. Async because 'custom'
+ *  items (learner-authored saved words with no vocabId) live in Dexie, not
+ *  the static content model — every other kind resolves synchronously
+ *  under the hood, but the function is uniformly async so callers (which
+ *  are already inside async session-building functions) don't need to
+ *  special-case it. */
+export async function exerciseForReviewable(kind: ReviewableKind, itemId: string, difficulty: ExerciseDifficultyHint): Promise<Exercise | null> {
   if (kind === 'vocab') {
     const item = findVocab(itemId)
     if (!item) return null
+    // Listening comprehension is only offered outside brand-new ("scaffolded")
+    // practice, where the learner hasn't seen the word's sound/spelling yet —
+    // it needs at least one prior exposure to be a fair recognition test.
+    if (difficulty !== 'scaffolded' && Math.random() < 0.15) return generateVocabListening(item)
     const direction = Math.random() < 0.5 ? 'fa-en' : 'en-fa'
     return difficulty === 'production' && Math.random() < 0.6
       ? generateVocabTypeAnswer(item, direction)
       : generateVocabMcq(item, direction)
+  }
+  if (kind === 'custom') {
+    const saved = await db.savedItems.get(itemId)
+    if (!saved) return null
+    const direction: 'fa-en' | 'en-fa' = Math.random() < 0.5 ? 'fa-en' : 'en-fa'
+    return difficulty === 'production' && Math.random() < 0.6
+      ? generateCustomTypeAnswer(saved, direction)
+      : generateCustomMcq(saved, direction)
   }
   if (kind === 'alphabet') {
     const letter = findLetter(itemId)
@@ -102,6 +122,7 @@ export function exerciseForReviewable(kind: ReviewableKind, itemId: string, diff
   if (kind === 'sentence') {
     const sentence = findSentence(itemId)
     if (!sentence) return null
+    if (difficulty !== 'scaffolded' && Math.random() < 0.25) return generateSentenceListening(sentence, sentences)
     if (difficulty === 'production') return generateSentenceWordOrder(sentence)
     return generateSentenceFillBlank(sentence) ?? generateSentenceTranslationMcq(sentence, sentences)
   }
@@ -123,7 +144,7 @@ export async function buildReviewExercises(limit = 30): Promise<Exercise[]> {
   const due = [...learningDue, ...reviewDue].slice(0, limit)
   const exercises: Exercise[] = []
   for (const state of due) {
-    const ex = exerciseForReviewable(state.kind, state.itemId, difficultyFor(state))
+    const ex = await exerciseForReviewable(state.kind, state.itemId, difficultyFor(state))
     if (ex) exercises.push(ex)
   }
   return exercises
@@ -167,7 +188,7 @@ export async function buildNextLesson(): Promise<LessonPlan | null> {
     await getOrCreateReviewState('sentence', id, now)
   }
 
-  // Practice: two passes over everything just taught, scaffolded difficulty.
+  // Practice: one pass over everything just taught, scaffolded difficulty.
   const allTaught: Array<{ kind: ReviewableKind; id: string }> = [
     ...content.alphabetIds.map((id) => ({ kind: 'alphabet' as const, id })),
     ...content.vocabIds.map((id) => ({ kind: 'vocab' as const, id })),
@@ -175,8 +196,24 @@ export async function buildNextLesson(): Promise<LessonPlan | null> {
     ...content.sentenceIds.map((id) => ({ kind: 'sentence' as const, id })),
   ]
   for (const { kind, id } of allTaught) {
-    const ex = exerciseForReviewable(kind, id, 'scaffolded')
+    const ex = await exerciseForReviewable(kind, id, 'scaffolded')
     if (ex) steps.push({ step: 'exercise', exercise: ex })
+  }
+
+  // Matching exercises are a strong fit for a batch of freshly-introduced
+  // vocab (drilling fa<->en recognition across the whole group at once) but
+  // a poor fit for review sessions, where every exercise needs to carry a
+  // single `reviewable` ref so its result can update that one item's SRS
+  // state — a matching exercise covers several items with no way to
+  // attribute a pass/fail to any one of them. So: only new-vocab lesson
+  // practice gets matching, in batches of 4-6, and only as *extra* practice
+  // on top of (not instead of) the per-item exercises above, which still do
+  // the SRS bookkeeping. Review-session rotation deliberately stays
+  // MCQ/type-answer/word-order/fill-blank/listening, unchanged.
+  const newVocabItems = content.vocabIds.map(findVocab).filter((v): v is VocabItem => !!v)
+  for (let i = 0; i < newVocabItems.length; i += 6) {
+    const batch = newVocabItems.slice(i, i + 6)
+    if (batch.length >= 4) steps.push({ step: 'exercise', exercise: generateVocabMatching(batch) })
   }
 
   return { unit, lessonIndex, lessonNumber: lessonIndex + 1, totalLessons: unit.lessonCount, steps }
@@ -197,7 +234,7 @@ export interface TodaySummary {
 }
 
 export async function getTodaySummary(): Promise<TodaySummary> {
-  const [{ learningDue, reviewDue }, unit, config] = await Promise.all([
+  const [{ learningDue, reviewDue, introducedTodayCount }, unit, config] = await Promise.all([
     getDueSummary(), getCurrentUnit(), getSchedulerConfig(),
   ])
   const lessonIndex = await getLessonsCompleted(unit.id)
@@ -207,7 +244,7 @@ export async function getTodaySummary(): Promise<TodaySummary> {
     currentUnit: unit,
     lessonNumber: lessonIndex + 1,
     totalLessons: unit.lessonCount,
-    newItemsToday: 0,
+    newItemsToday: introducedTodayCount,
     newItemsCap: config.newItemsPerDay,
   }
 }

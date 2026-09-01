@@ -6,6 +6,7 @@ import { alphabet } from '../content/alphabet'
 import { sentences } from '../content/sentences'
 import { normalizeLatin, normalizePersian } from '../lib/persianText'
 import { db } from '../storage/db'
+import { getOrCreateReviewState } from '../storage/progressRepo'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { PageHeader } from '../components/shared/PageHeader'
 import { Card } from '../components/shared/Card'
@@ -40,6 +41,11 @@ export function Dictionary() {
       // oxlint-disable-next-line react/purity
       const now = Date.now()
       await db.savedItems.add({ id: `saved-${vocabId}-${now}`, vocabId, fa, translit, en, createdAt: now })
+      // Saved words with a vocabId point at real, already-vetted vocabulary,
+      // so they join the exact same 'vocab' SRS queue as curriculum-taught
+      // words — starring a dictionary word makes it reviewable/exercisable
+      // immediately, not just bookmarked.
+      await getOrCreateReviewState('vocab', vocabId, now)
     }
   }
 

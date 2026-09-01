@@ -21,6 +21,10 @@ export function gradeMatching(exercise: Extract<Exercise, { kind: 'matching' }>,
   return exercise.pairs.every((p) => matchedPairIds[p.id] === p.id)
 }
 
+export function gradeListening(exercise: Extract<Exercise, { kind: 'listening' }>, selectedOptionId: string): boolean {
+  return selectedOptionId === exercise.correctOptionId
+}
+
 /** Map a raw correct/incorrect result plus hint usage to an SRS rating.
  *  Wrong -> again. Right with 2+ hints -> hard. Right with 0-1 hints -> good.
  *  Right with 0 hints on a production (typed/word-order) exercise -> easy,

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getTodaySummary } from '../lib/session'
 import { getRecentMistakes } from '../storage/progressRepo'
-import { db, getSettings } from '../storage/db'
+import { db, getSettings, type SavedItem } from '../storage/db'
 import { findVocab } from '../content/vocabulary'
 import { findLetter } from '../content/alphabet'
 import { findSentence } from '../content/sentences'
@@ -13,10 +13,11 @@ import { Card } from '../components/shared/Card'
 import { Button } from '../components/shared/Button'
 import { PersianText } from '../components/shared/PersianText'
 
-function contentLabel(kind: string, itemId: string): { fa?: string; en: string } {
+function contentLabel(kind: string, itemId: string, savedItems: Map<string, SavedItem> | undefined): { fa?: string; en: string } {
   if (kind === 'vocab') { const v = findVocab(itemId); return v ? { fa: v.fa, en: v.en } : { en: itemId } }
   if (kind === 'alphabet') { const l = findLetter(itemId); return l ? { fa: l.forms.isolated, en: l.name } : { en: itemId } }
   if (kind === 'sentence') { const s = findSentence(itemId); return s ? { fa: s.fa, en: s.en } : { en: itemId } }
+  if (kind === 'custom') { const c = savedItems?.get(itemId); return c ? { fa: c.fa, en: c.en } : { en: 'your saved word' } }
   const g = findGrammarConcept(itemId); return g ? { en: g.title } : { en: itemId }
 }
 
@@ -26,6 +27,10 @@ export function Dashboard() {
   const mistakes = useAsyncData(() => getRecentMistakes(5), [])
   const settings = useLiveQuery(() => getSettings(), [])
   const totalReviewables = useLiveQuery(() => db.reviewStates.count(), [])
+  const savedItemsById = useLiveQuery(
+    () => db.savedItems.toArray().then((items) => new Map(items.map((i) => [i.id, i]))),
+    [],
+  )
 
   const streak = settings?.currentStreak ?? 0
 
@@ -53,6 +58,11 @@ export function Dashboard() {
               {summary.data.reviewsDue > 0
                 ? `${summary.data.reviewsDue} review${summary.data.reviewsDue === 1 ? '' : 's'} due`
                 : 'No reviews due right now'}
+            </p>
+          )}
+          {summary.data && (
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              {summary.data.newItemsToday} of {summary.data.newItemsCap} new items today
             </p>
           )}
           <div className="flex gap-2">
@@ -93,7 +103,7 @@ export function Dashboard() {
             <p className="mb-3 text-sm font-medium text-[var(--color-ink)]">Recent mix-ups</p>
             <ul className="flex flex-col gap-2">
               {mistakes.data.map((m) => {
-                const label = contentLabel(m.kind, m.itemId)
+                const label = contentLabel(m.kind, m.itemId, savedItemsById)
                 return (
                   <li key={m.key} className="flex items-center justify-between text-sm">
                     {label.fa ? <PersianText fa={label.fa} size="sm" /> : <span>{label.en}</span>}
