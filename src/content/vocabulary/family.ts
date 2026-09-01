@@ -1,0 +1,26 @@
+import type { VocabItem } from '../types'
+
+export const familyVocab: VocabItem[] = [
+  { id: 'fam-khanevade', fa: 'خانواده', translit: 'khānevāde', en: 'family', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, pluralFa: 'خانواده‌ها', confidence: 'high-confidence' },
+  { id: 'fam-pedar', fa: 'پدر', translit: 'pedar', en: 'father', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, altEn: ['بابا (bābā) is the everyday, affectionate "dad".'], confidence: 'high-confidence' },
+  { id: 'fam-mother', fa: 'مادر', translit: 'mādar', en: 'mother', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, altEn: ['مامان (māmān) is the everyday, affectionate "mom".'], confidence: 'high-confidence' },
+  { id: 'fam-baba', fa: 'بابا', translit: 'bābā', en: 'dad', pos: 'noun', category: 'family', register: 'colloquial', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-maman', fa: 'مامان', translit: 'māmān', en: 'mom', pos: 'noun', category: 'family', register: 'colloquial', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-baradar', fa: 'برادر', translit: 'barādar', en: 'brother', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, pluralFa: 'برادرها', confidence: 'high-confidence' },
+  { id: 'fam-khahar', fa: 'خواهر', translit: 'khāhar', en: 'sister', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, pluralFa: 'خواهرها', confidence: 'high-confidence' },
+  { id: 'fam-pesar', fa: 'پسر', translit: 'pesar', en: 'son / boy', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-dokhtar', fa: 'دختر', translit: 'dokhtar', en: 'daughter / girl', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-hamsar', fa: 'همسر', translit: 'hamsar', en: 'spouse', pos: 'noun', category: 'family', register: 'formal', frequency: 2, level: 2, confidence: 'high-confidence' },
+  { id: 'fam-shohar', fa: 'شوهر', translit: 'shohar', en: 'husband', pos: 'noun', category: 'family', register: 'neutral', frequency: 2, level: 2, confidence: 'high-confidence' },
+  { id: 'fam-zan', fa: 'زن', translit: 'zan', en: 'wife / woman', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-mard', fa: 'مرد', translit: 'mard', en: 'man', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-pedarbozorg', fa: 'پدربزرگ', translit: 'pedarbozorg', en: 'grandfather', pos: 'noun', category: 'family', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-madarbozorg', fa: 'مادربزرگ', translit: 'mādarbozorg', en: 'grandmother', pos: 'noun', category: 'family', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'fam-amoo', fa: 'عمو', translit: 'amu', en: "paternal uncle (father's brother)", pos: 'noun', category: 'family', register: 'neutral', frequency: 3, level: 2, notes: 'Persian distinguishes paternal vs. maternal aunts/uncles: عمو/عمه (father\'s side) vs. دایی/خاله (mother\'s side).', confidence: 'high-confidence' },
+  { id: 'fam-khale', fa: 'خاله', translit: 'khāle', en: "maternal aunt (mother's sister)", pos: 'noun', category: 'family', register: 'neutral', frequency: 3, level: 2, confidence: 'high-confidence' },
+  { id: 'fam-daei', fa: 'دایی', translit: 'dāyi', en: "maternal uncle (mother's brother)", pos: 'noun', category: 'family', register: 'neutral', frequency: 3, level: 2, confidence: 'high-confidence' },
+  { id: 'fam-amme', fa: 'عمه', translit: 'amme', en: "paternal aunt (father's sister)", pos: 'noun', category: 'family', register: 'neutral', frequency: 3, level: 2, confidence: 'high-confidence' },
+  { id: 'fam-bache', fa: 'بچه', translit: 'bache', en: 'child / kid', pos: 'noun', category: 'family', register: 'colloquial', frequency: 1, level: 1, pluralFa: 'بچه‌ها', confidence: 'high-confidence' },
+  { id: 'fam-farzand', fa: 'فرزند', translit: 'farzand', en: 'child (formal, gender-neutral: son or daughter)', pos: 'noun', category: 'family', register: 'formal', frequency: 2, level: 2, confidence: 'high-confidence' },
+  { id: 'fam-dust', fa: 'دوست', translit: 'dust', en: 'friend', pos: 'noun', category: 'family', register: 'neutral', frequency: 1, level: 1, pluralFa: 'دوست‌ها', confidence: 'high-confidence' },
+]

@@ -1,0 +1,179 @@
+import type { ExampleSentence } from '../types'
+
+export const grammarFocusSentences: ExampleSentence[] = [
+  {
+    id: 's-ezafe-ketabeman', fa: 'کتاب من روی میز است.', translit: 'ketāb-e man ru-ye miz ast.', en: 'My book is on the table.',
+    register: 'neutral', level: 1, literalEn: 'book-of me on-of table is',
+    words: [
+      { fa: 'کتاب', translit: 'ketāb', en: 'book', vocabId: 'sch-ketab' },
+      { fa: '-ِ', translit: '-e', en: '(ezafe link: "of")' },
+      { fa: 'من', translit: 'man', en: 'me', vocabId: 'pron-man' },
+      { fa: 'روی میز', translit: 'ru-ye miz', en: 'on the table', vocabId: 'home-miz' },
+      { fa: 'است', translit: 'ast', en: 'is' },
+    ],
+    grammarConceptIds: ['g-ezafe-basics'], vocabIds: ['sch-ketab', 'pron-man', 'home-miz'], confidence: 'high-confidence',
+  },
+  {
+    id: 's-ezafe-khanareza', fa: 'خانه‌ی رضا بزرگ است.', translit: 'khāne-ye Rezā bozorg ast.', en: "Reza's house is big.",
+    register: 'formal', level: 1, literalEn: 'house-of Reza big is',
+    words: [
+      { fa: 'خانه‌ی', translit: 'khāne-ye', en: 'house-of', vocabId: 'home-khane' },
+      { fa: 'رضا', translit: 'Rezā', en: 'Reza' },
+      { fa: 'بزرگ', translit: 'bozorg', en: 'big', vocabId: 'adj-bozorg' },
+      { fa: 'است', translit: 'ast', en: 'is' },
+    ],
+    grammarConceptIds: ['g-ezafe-basics', 'g-possession'], vocabIds: ['home-khane', 'adj-bozorg'], confidence: 'high-confidence',
+  },
+  {
+    id: 's-ra-ketab', fa: 'کتاب را به من بده.', translit: 'ketāb rā be man bedeh.', en: 'Give me the book.',
+    register: 'neutral', level: 2, literalEn: '[the] book (object) to me give!',
+    words: [
+      { fa: 'کتاب را', translit: 'ketāb rā', en: 'the book (as object)', vocabId: 'sch-ketab' },
+      { fa: 'به من', translit: 'be man', en: 'to me' },
+      { fa: 'بده', translit: 'bedeh', en: 'give!', vocabId: 'verb-dadan' },
+    ],
+    grammarConceptIds: ['g-object-marker-ra', 'g-imperative'], vocabIds: ['sch-ketab', 'pron-man', 'verb-dadan'],
+    notes: 'را marks a *definite* direct object — "the book", not just "a book".', confidence: 'high-confidence',
+  },
+  {
+    id: 's-ra-vs-indefinite', fa: 'یک کتاب می‌خرم. / کتاب را می‌خرم.', translit: 'yek ketāb mikharam. / ketāb rā mikharam.',
+    en: 'I\'ll buy a book. / I\'ll buy the book.', register: 'neutral', level: 2,
+    words: [
+      { fa: 'یک کتاب', translit: 'yek ketāb', en: 'a book (indefinite, no را)' },
+      { fa: 'می‌خرم', translit: 'mikharam', en: 'I buy', vocabId: 'verb-kharidan' },
+      { fa: 'کتاب را', translit: 'ketāb rā', en: 'the book (definite, with را)' },
+    ],
+    grammarConceptIds: ['g-object-marker-ra'], vocabIds: ['sch-ketab', 'verb-kharidan'],
+    notes: 'The clearest minimal pair for teaching را: indefinite objects skip it, definite objects require it.', confidence: 'high-confidence',
+  },
+  {
+    id: 's-possession-am', fa: 'ماشینم خراب شد.', translit: 'māshinam kharāb shod.', en: 'My car broke down.',
+    register: 'colloquial', level: 2, literalEn: 'car-my broken became',
+    words: [
+      { fa: 'ماشینم', translit: 'māshinam', en: 'my car', vocabId: 'trav-mashin' },
+      { fa: 'خراب شد', translit: 'kharāb shod', en: 'became broken' },
+    ],
+    grammarConceptIds: ['g-possession', 'g-simple-past'], vocabIds: ['trav-mashin', 'verb-shodan'],
+    notes: 'Possessive pronoun suffixes (-am, -at, -ash...) are the everyday alternative to مال من "belonging to me".', confidence: 'high-confidence',
+  },
+  {
+    id: 's-comparative', fa: 'این کتاب از آن یکی جالب‌تر است.', translit: 'in ketāb az ān yeki jāleb-tar ast.', en: 'This book is more interesting than that one.',
+    register: 'formal', level: 2, literalEn: 'this book from that one interesting-more is',
+    words: [
+      { fa: 'این کتاب', translit: 'in ketāb', en: 'this book' },
+      { fa: 'از آن یکی', translit: 'az ān yeki', en: 'than that one' },
+      { fa: 'جالب‌تر', translit: 'jāleb-tar', en: 'more interesting' },
+      { fa: 'است', translit: 'ast', en: 'is' },
+    ],
+    grammarConceptIds: ['g-comparison'], vocabIds: ['sch-ketab'],
+    notes: 'Comparative: adjective + تر. "Than" is از.', confidence: 'high-confidence',
+  },
+  {
+    id: 's-superlative', fa: 'او بهترین دوست من است.', translit: 'u behtarin dust-e man ast.', en: 'He/She is my best friend.',
+    register: 'neutral', level: 2, literalEn: 'he/she best friend-of me is',
+    words: [
+      { fa: 'او', translit: 'u', en: 'he/she', vocabId: 'pron-oo' },
+      { fa: 'بهترین', translit: 'behtarin', en: 'best' },
+      { fa: 'دوست من', translit: 'dust-e man', en: 'my friend' },
+      { fa: 'است', translit: 'ast', en: 'is' },
+    ],
+    grammarConceptIds: ['g-comparison'], vocabIds: ['pron-oo', 'fam-dust'],
+    notes: 'Superlative: adjective + ترین, placed *before* the noun (unlike ordinary adjectives).', confidence: 'high-confidence',
+  },
+  {
+    id: 's-conditional-real', fa: 'اگر باران بیاید، خانه می‌مانم.', translit: 'agar bārān biyāyad, khāne mimānam.', en: 'If it rains, I\'ll stay home.',
+    register: 'formal', level: 4,
+    words: [
+      { fa: 'اگر', translit: 'agar', en: 'if', vocabId: 'conn-age' },
+      { fa: 'باران بیاید', translit: 'bārān biyāyad', en: 'rain comes (subjunctive)' },
+      { fa: 'خانه می‌مانم', translit: 'khāne mimānam', en: 'I stay home' },
+    ],
+    grammarConceptIds: ['g-conditionals', 'g-subjunctive'], vocabIds: ['conn-age', 'nat-baran'],
+    notes: 'The "if" clause of a real/possible condition uses the subjunctive.', confidence: 'high-confidence',
+  },
+  {
+    id: 's-conditional-unreal', fa: 'اگر پول داشتم، آن خانه را می‌خریدم.', translit: 'agar pul dāshtam, ān khāne rā mikharidam.',
+    en: 'If I had money, I would buy that house.', register: 'formal', level: 4,
+    words: [
+      { fa: 'اگر پول داشتم', translit: 'agar pul dāshtam', en: 'if I had money' },
+      { fa: 'آن خانه را', translit: 'ān khāne rā', en: 'that house (object)' },
+      { fa: 'می‌خریدم', translit: 'mikharidam', en: 'I would buy' },
+    ],
+    grammarConceptIds: ['g-conditionals'], vocabIds: ['conn-age', 'home-khane'],
+    notes: 'Unreal/hypothetical conditions use the simple past in both clauses (not the subjunctive).', confidence: 'high-confidence',
+  },
+  {
+    id: 's-relative-ke', fa: 'مردی که آنجا ایستاده برادر من است.', translit: 'mardi ke ānjā istāde barādar-e man ast.',
+    en: 'The man who is standing there is my brother.', register: 'formal', level: 3,
+    literalEn: 'man-a that there stood brother-of me is',
+    words: [
+      { fa: 'مردی', translit: 'mardi', en: 'a man' },
+      { fa: 'که', translit: 'ke', en: 'who/that', vocabId: 'conn-ke' },
+      { fa: 'آنجا ایستاده', translit: 'ānjā istāde', en: 'is standing there' },
+      { fa: 'برادر من است', translit: 'barādar-e man ast', en: 'is my brother' },
+    ],
+    grammarConceptIds: ['g-relative-clauses'], vocabIds: ['conn-ke', 'fam-baradar'], confidence: 'high-confidence',
+  },
+  {
+    id: 's-reported-speech', fa: 'او گفت که فردا می‌آید.', translit: 'u goft ke fardā miāyad.', en: 'He/She said that he/she is coming tomorrow.',
+    register: 'formal', level: 4,
+    words: [
+      { fa: 'او گفت', translit: 'u goft', en: 'he/she said' },
+      { fa: 'که', translit: 'ke', en: 'that', vocabId: 'conn-ke' },
+      { fa: 'فردا می‌آید', translit: 'fardā miāyad', en: 'tomorrow he/she comes' },
+    ],
+    grammarConceptIds: ['g-reported-speech'], vocabIds: ['pron-oo', 'verb-goftan', 'conn-ke'],
+    notes: 'Unlike English, Persian reported speech usually keeps the original tense (no "backshift" to "was coming").', confidence: 'needs-review',
+  },
+  {
+    id: 's-imperative-negative', fa: 'اینجا سیگار نکش!', translit: 'injā sigār nakesh!', en: "Don't smoke here!", register: 'colloquial', level: 2,
+    words: [
+      { fa: 'اینجا', translit: 'injā', en: 'here' },
+      { fa: 'سیگار نکش', translit: 'sigār nakesh', en: "don't smoke" },
+    ],
+    grammarConceptIds: ['g-imperative', 'g-negation'], vocabIds: [],
+    notes: 'Negative imperative: نـ prefix on the present-stem imperative form.', confidence: 'high-confidence',
+  },
+  {
+    id: 's-must-bayad', fa: 'باید الان بروم.', translit: 'bāyad al\'ān beravam.', en: 'I have to go now.', register: 'neutral', level: 3,
+    words: [
+      { fa: 'باید', translit: 'bāyad', en: 'must/have to' },
+      { fa: 'الان', translit: 'al\'ān', en: 'now', vocabId: 'adv-alan' },
+      { fa: 'بروم', translit: 'beravam', en: 'that I go (subjunctive)', vocabId: 'verb-raftan' },
+    ],
+    grammarConceptIds: ['g-modals', 'g-subjunctive'], vocabIds: ['adv-alan', 'verb-raftan'],
+    notes: 'باید is invariable (never conjugated); the verb after it goes into the subjunctive.', confidence: 'high-confidence',
+  },
+  {
+    id: 's-compound-verb', fa: 'من امروز خیلی کار کردم.', translit: 'man emruz kheyli kār kardam.', en: 'I worked a lot today.', register: 'neutral', level: 2,
+    words: [
+      { fa: 'من', translit: 'man', en: 'I', vocabId: 'pron-man' },
+      { fa: 'امروز', translit: 'emruz', en: 'today', vocabId: 'time-emruz' },
+      { fa: 'خیلی', translit: 'kheyli', en: 'a lot', vocabId: 'adv-kheyli' },
+      { fa: 'کار کردم', translit: 'kār kardam', en: 'I worked' },
+    ],
+    grammarConceptIds: ['g-compound-verbs', 'g-simple-past'], vocabIds: ['pron-man', 'time-emruz', 'adv-kheyli', 'verb-kar-kardan'],
+    confidence: 'high-confidence',
+  },
+  {
+    id: 's-colloquial-mikham', fa: 'می‌خوام برم خونه.', translit: 'mikhām beram khune.', en: 'I want to go home.', register: 'colloquial', level: 2,
+    words: [
+      { fa: 'می‌خوام', translit: 'mikhām', en: 'I want (colloquial)', vocabId: 'verb-khastan' },
+      { fa: 'برم', translit: 'beram', en: 'that I go (colloquial subjunctive)', vocabId: 'verb-raftan' },
+      { fa: 'خونه', translit: 'khune', en: 'home (colloquial pronunciation)', vocabId: 'home-khane' },
+    ],
+    grammarConceptIds: ['g-colloquial-contractions', 'g-subjunctive'], vocabIds: ['verb-khastan', 'verb-raftan', 'home-khane'],
+    notes: 'Formal equivalent: می‌خواهم بروم خانه. Everyday spoken Persian differs from formal written Persian more than most European languages do.', confidence: 'high-confidence',
+  },
+  {
+    id: 's-passive', fa: 'این کتاب توسط او نوشته شد.', translit: 'in ketāb tavassot-e u neveshte shod.', en: 'This book was written by him/her.',
+    register: 'formal', level: 4, literalEn: 'this book by him/her written became',
+    words: [
+      { fa: 'این کتاب', translit: 'in ketāb', en: 'this book' },
+      { fa: 'توسط او', translit: 'tavassot-e u', en: 'by him/her' },
+      { fa: 'نوشته شد', translit: 'neveshte shod', en: 'was written' },
+    ],
+    grammarConceptIds: ['g-compound-verbs'], vocabIds: ['verb-neveshtan', 'verb-shodan'],
+    notes: 'Persian forms the passive with the past participle + شدن ("to become"); it is far less common than in English — active voice is usually preferred.', confidence: 'high-confidence',
+  },
+]

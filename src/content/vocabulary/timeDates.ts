@@ -1,0 +1,26 @@
+import type { VocabItem } from '../types'
+
+export const timeDatesVocab: VocabItem[] = [
+  { id: 'time-emruz', fa: 'امروز', translit: 'emruz', en: 'today', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-diruz', fa: 'دیروز', translit: 'diruz', en: 'yesterday', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-farda', fa: 'فردا', translit: 'fardā', en: 'tomorrow', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-alan2', fa: 'صبح', translit: 'sobh', en: 'morning', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-zohr', fa: 'ظهر', translit: 'zohr', en: 'noon', pos: 'noun', category: 'time', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-asr', fa: 'عصر', translit: 'asr', en: 'afternoon', pos: 'noun', category: 'time', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-shab', fa: 'شب', translit: 'shab', en: 'night', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-hafte', fa: 'هفته', translit: 'hafte', en: 'week', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, pluralFa: 'هفته‌ها', confidence: 'high-confidence' },
+  { id: 'time-mah', fa: 'ماه', translit: 'māh', en: 'month', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-sal', fa: 'سال', translit: 'sāl', en: 'year', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-saat', fa: 'ساعت', translit: 'sā\'at', en: 'hour / clock / watch', pos: 'noun', category: 'time', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-daghighe', fa: 'دقیقه', translit: 'daqiqe', en: 'minute', pos: 'noun', category: 'time', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-chandsaate', fa: 'ساعت چنده؟', translit: 'sā\'at chand-e?', en: 'what time is it?', pos: 'phrase', category: 'time', register: 'colloquial', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'time-shanbe', fa: 'شنبه', translit: 'shanbe', en: 'Saturday', pos: 'noun', category: 'dates', register: 'neutral', frequency: 2, level: 1, notes: 'The Iranian week runs Saturday (شنبه) through Friday (جمعه); the weekend is Thursday afternoon–Friday in Iran.', confidence: 'high-confidence' },
+  { id: 'time-yekshanbe', fa: 'یکشنبه', translit: 'yekshanbe', en: 'Sunday', pos: 'noun', category: 'dates', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-doshanbe', fa: 'دوشنبه', translit: 'doshanbe', en: 'Monday', pos: 'noun', category: 'dates', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-seshanbe', fa: 'سه‌شنبه', translit: 'seshanbe', en: 'Tuesday', pos: 'noun', category: 'dates', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-chaharshanbe', fa: 'چهارشنبه', translit: 'chāharshanbe', en: 'Wednesday', pos: 'noun', category: 'dates', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-panjshanbe', fa: 'پنجشنبه', translit: 'panjshanbe', en: 'Thursday', pos: 'noun', category: 'dates', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'time-jome', fa: 'جمعه', translit: 'jom\'e', en: 'Friday', pos: 'noun', category: 'dates', register: 'neutral', frequency: 2, level: 1, notes: 'The main weekly day off in Iran.', confidence: 'high-confidence' },
+  { id: 'time-emsal', fa: 'امسال', translit: 'emsāl', en: 'this year', pos: 'noun', category: 'dates', register: 'neutral', frequency: 3, level: 2, confidence: 'high-confidence' },
+  { id: 'time-noruz', fa: 'نوروز', translit: 'nowruz', en: 'Nowruz (Persian New Year)', pos: 'noun', category: 'dates', register: 'neutral', frequency: 3, level: 2, notes: 'Begins at the spring equinox (around March 20-21); Iran uses the Solar Hijri calendar, not the Gregorian one, for civil dates.', confidence: 'high-confidence' },
+]

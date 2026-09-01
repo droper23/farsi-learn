@@ -1,0 +1,40 @@
+import type { VocabItem } from '../types'
+
+export const adjectivesVocab: VocabItem[] = [
+  { id: 'adj-khub', fa: 'خوب', translit: 'khub', en: 'good', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-bad', fa: 'بد', translit: 'bad', en: 'bad', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-bozorg', fa: 'بزرگ', translit: 'bozorg', en: 'big', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-kuchik', fa: 'کوچک', translit: 'kuchak', en: 'small', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, altEn: ['کوچیک (kuchik) is the everyday spoken pronunciation.'], confidence: 'high-confidence' },
+  { id: 'adj-jadid', fa: 'جدید', translit: 'jadid', en: 'new', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, altEn: ['نو (no) is a common near-synonym for physical objects.'], confidence: 'high-confidence' },
+  { id: 'adj-ghadimi', fa: 'قدیمی', translit: 'qadimi', en: 'old (things)', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, notes: 'For people\'s age, use پیر (pir, "old/elderly") instead.', confidence: 'high-confidence' },
+  { id: 'adj-pir', fa: 'پیر', translit: 'pir', en: 'old (people)', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-javan', fa: 'جوان', translit: 'javān', en: 'young', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-ziba', fa: 'زیبا', translit: 'zibā', en: 'beautiful', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 2, level: 1, altEn: ['قشنگ (qashang) is the everyday, casual equivalent.'], confidence: 'high-confidence' },
+  { id: 'adj-qashang', fa: 'قشنگ', translit: 'qashang', en: 'pretty / nice-looking', pos: 'adjective', category: 'adjectives', register: 'colloquial', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-zesht', fa: 'زشت', translit: 'zesht', en: 'ugly', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 3, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-garm', fa: 'گرم', translit: 'garm', en: 'warm / hot', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-sard', fa: 'سرد', translit: 'sard', en: 'cold', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-sari', fa: 'سریع', translit: 'sari', en: 'fast', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-kond', fa: 'کند', translit: 'kond', en: 'slow', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 2, level: 1, altEn: ['یواش (yavāsh) is the everyday colloquial word for "slow(ly)".'], confidence: 'high-confidence' },
+  { id: 'adj-asan', fa: 'آسان', translit: 'āsān', en: 'easy', pos: 'adjective', category: 'adjectives', register: 'formal', frequency: 2, level: 1, altEn: ['ساده (sāde) is a common near-synonym meaning "simple".'], confidence: 'high-confidence' },
+  { id: 'adj-sakht', fa: 'سخت', translit: 'sakht', en: 'hard / difficult', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-gerun', fa: 'گران', translit: 'gerān', en: 'expensive', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-arzoon', fa: 'ارزان', translit: 'arzān', en: 'cheap', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-khaste', fa: 'خسته', translit: 'khaste', en: 'tired', pos: 'adjective', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-khoshhal', fa: 'خوشحال', translit: 'khoshhāl', en: 'happy', pos: 'adjective', category: 'emotions', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adj-narahat', fa: 'ناراحت', translit: 'nārāhat', en: 'upset / uncomfortable', pos: 'adjective', category: 'emotions', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+]
+
+export const adverbsVocab: VocabItem[] = [
+  { id: 'adv-kheyli', fa: 'خیلی', translit: 'kheyli', en: 'very / a lot', pos: 'adverb', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-kami', fa: 'کمی', translit: 'kami', en: 'a little', pos: 'adverb', category: 'adjectives', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-alan', fa: 'الان', translit: 'al\'ān', en: 'now', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-hala', fa: 'حالا', translit: 'hālā', en: 'now', pos: 'adverb', category: 'daily-activities', register: 'colloquial', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-hamishe', fa: 'همیشه', translit: 'hamishe', en: 'always', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-hichvaght', fa: 'هیچ‌وقت', translit: 'hichvaqt', en: 'never', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 1, level: 1, notes: 'Requires a negated verb: هیچ‌وقت نمی‌روم "I never go" (double negative pattern is normal in Persian).', confidence: 'high-confidence' },
+  { id: 'adv-gahi', fa: 'گاهی', translit: 'gāhi', en: 'sometimes', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-hanuz', fa: 'هنوز', translit: 'hanuz', en: 'still / yet', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-digar', fa: 'دیگر', translit: 'digar', en: 'anymore / other / else', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 1, level: 2, altEn: ['دیگه (dige) is the everyday spoken pronunciation.'], confidence: 'high-confidence' },
+  { id: 'adv-zud', fa: 'زود', translit: 'zud', en: 'early / quickly', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'adv-dir', fa: 'دیر', translit: 'dir', en: 'late', pos: 'adverb', category: 'daily-activities', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+]

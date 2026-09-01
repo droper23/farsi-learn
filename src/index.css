@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* Self-hosted variable Persian/Arabic-script font (SIL OFL). Works fully
+   offline once cached by the service worker — no Google Fonts dependency. */
+@import "@fontsource-variable/vazirmatn/index.css";
+@import "@fontsource-variable/vazirmatn/wght.css";
+
+@theme {
+  --font-en: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-fa: "Vazirmatn Variable", "Vazirmatn", "Noto Sans Arabic", Tahoma, sans-serif;
+
+  --color-bg: #fbfaf8;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: #e7e2da;
+  --color-ink: #211d17;
+  --color-ink-muted: #6f6656;
+  --color-brand: #0f766e;
+  --color-brand-strong: #0b5a54;
+  --color-brand-soft: #ccfbf1;
+  --color-accent: #b45309;
+  --color-good: #15803d;
+  --color-good-soft: #dcfce7;
+  --color-warn: #b45309;
+  --color-warn-soft: #fef3c7;
+  --color-bad: #b91c1c;
+  --color-bad-soft: #fee2e2;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-bg: #14120e;
+    --color-surface: #1c1a15;
+    --color-surface-raised: #24211a;
+    --color-border: #35311f;
+    --color-ink: #f3efe6;
+    --color-ink-muted: #b3ab97;
+    --color-brand: #2dd4bf;
+    --color-brand-strong: #5eead4;
+    --color-brand-soft: #123b37;
+    --color-accent: #fbbf24;
+    --color-good: #4ade80;
+    --color-good-soft: #14311f;
+    --color-warn: #fbbf24;
+    --color-warn-soft: #3a2c0c;
+    --color-bad: #f87171;
+    --color-bad-soft: #3a1616;
+  }
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-en);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Persian/RTL text: always tagged explicitly with lang+dir rather than
+   inherited, since most screens mix English UI chrome with Farsi content. */
+[lang="fa"],
+.fa-text {
+  font-family: var(--font-fa);
+  direction: rtl;
+  unicode-bidi: isolate;
+  line-height: 2;
+}
+
+/* Persian digits/punctuation inside an fa-text run should stay LTR-shaped
+   but isolated so they don't reorder surrounding RTL text. */
+.ltr-isolate {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+::selection {
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Larger, calmer focus ring than the browser default; visible in both themes. */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}

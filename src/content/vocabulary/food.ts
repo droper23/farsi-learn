@@ -1,0 +1,26 @@
+import type { VocabItem } from '../types'
+
+export const foodVocab: VocabItem[] = [
+  { id: 'food-ghaza', fa: 'غذا', translit: 'ghazā', en: 'food', pos: 'noun', category: 'food', register: 'neutral', frequency: 1, level: 1, pluralFa: 'غذاها', confidence: 'high-confidence' },
+  { id: 'food-nan', fa: 'نان', translit: 'nān', en: 'bread', pos: 'noun', category: 'food', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'food-berenj', fa: 'برنج', translit: 'berenj', en: 'rice', pos: 'noun', category: 'food', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'food-ab', fa: 'آب', translit: 'āb', en: 'water', pos: 'noun', category: 'food', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'food-chay', fa: 'چای', translit: 'chāy', en: 'tea', pos: 'noun', category: 'food', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'food-ghahve', fa: 'قهوه', translit: 'qahve', en: 'coffee', pos: 'noun', category: 'food', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'food-miveh', fa: 'میوه', translit: 'mive', en: 'fruit', pos: 'noun', category: 'food', register: 'neutral', frequency: 1, level: 1, pluralFa: 'میوه‌ها', confidence: 'high-confidence' },
+  { id: 'food-sib', fa: 'سیب', translit: 'sib', en: 'apple', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-panir', fa: 'پنیر', translit: 'panir', en: 'cheese', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-tokhmemorgh', fa: 'تخم‌مرغ', translit: 'tokhm-e morgh', en: 'egg', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, literalEn: 'chicken egg', confidence: 'high-confidence' },
+  { id: 'food-gusht', fa: 'گوشت', translit: 'gusht', en: 'meat', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-morgh', fa: 'مرغ', translit: 'morgh', en: 'chicken', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-sabzi', fa: 'سبزی', translit: 'sabzi', en: 'vegetables / herbs', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-shir', fa: 'شیر', translit: 'shir', en: 'milk', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, notes: 'Also means "lion" — an unrelated homograph, distinguished only by context.', confidence: 'high-confidence' },
+  { id: 'food-shekar', fa: 'شکر', translit: 'shekar', en: 'sugar', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-namak', fa: 'نمک', translit: 'namak', en: 'salt', pos: 'noun', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-restoran', fa: 'رستوران', translit: 'resturān', en: 'restaurant', pos: 'noun', category: 'restaurant', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'food-menu', fa: 'منو', translit: 'menu', en: 'menu', pos: 'noun', category: 'restaurant', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'food-surat-hesab', fa: 'صورت‌حساب', translit: 'surat-hesāb', en: 'the check / bill', pos: 'noun', category: 'restaurant', register: 'formal', frequency: 3, level: 2, altEn: ['قبض / hesāb (colloquial) is also common: حساب کنید لطفاً "the check, please".'], confidence: 'high-confidence' },
+  { id: 'food-goshnam', fa: 'گشنمه', translit: 'goshname', en: "I'm hungry", pos: 'phrase', category: 'restaurant', register: 'colloquial', frequency: 1, level: 1, altEn: ['گرسنه‌ام (gorosne-am) is the formal equivalent.'], confidence: 'needs-review', note: 'Common colloquial Tehrani contraction of گرسنه‌ام — worth a native-speaker spot check on spelling/exact casualness.' },
+  { id: 'food-tashnamme', fa: 'تشنمه', translit: 'teshname', en: "I'm thirsty", pos: 'phrase', category: 'restaurant', register: 'colloquial', frequency: 1, level: 1, altEn: ['تشنه‌ام (teshne-am) is the formal equivalent.'], confidence: 'needs-review', note: 'Common colloquial Tehrani contraction of تشنه‌ام — worth a native-speaker spot check on spelling/exact casualness.' },
+  { id: 'food-khoshmazast', fa: 'خوشمزه است', translit: 'khoshmaze ast', en: 'it is delicious', pos: 'phrase', category: 'food', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+]
