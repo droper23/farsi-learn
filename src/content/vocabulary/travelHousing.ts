@@ -11,12 +11,23 @@ export const travelVocab: VocabItem[] = [
   { id: 'trav-safar', fa: 'سفر', translit: 'safar', en: 'trip / journey', pos: 'noun', category: 'travel', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'trav-hotel', fa: 'هتل', translit: 'hotel', en: 'hotel', pos: 'noun', category: 'travel', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'trav-passport', fa: 'پاسپورت', translit: 'pāsport', en: 'passport', pos: 'noun', category: 'travel', register: 'neutral', frequency: 3, level: 1, altEn: ['گذرنامه (gozarnāme) is the formal/official Persian term.'], confidence: 'high-confidence' },
+  { id: 'trav-chamedan', fa: 'چمدان', translit: 'chamedān', en: 'suitcase', pos: 'noun', category: 'travel', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'trav-viza', fa: 'ویزا', translit: 'vizā', en: 'visa', pos: 'noun', category: 'travel', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'trav-naghshe', fa: 'نقشه', translit: 'naghshe', en: 'map', pos: 'noun', category: 'travel', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'trav-docharkhe', fa: 'دوچرخه', translit: 'docharkhe', en: 'bicycle', pos: 'noun', category: 'transportation', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'trav-motorsiklet', fa: 'موتورسیکلت', translit: 'motorsiklet', en: 'motorcycle', pos: 'noun', category: 'transportation', register: 'neutral', frequency: 3, level: 1, altEn: ['موتور (motor) is the common everyday shortening.'], confidence: 'high-confidence' },
+  { id: 'trav-metro', fa: 'مترو', translit: 'metro', en: 'metro / subway', pos: 'noun', category: 'transportation', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'trav-ranande', fa: 'راننده', translit: 'rānande', en: 'driver', pos: 'noun', category: 'transportation', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'dir-rast', fa: 'راست', translit: 'rāst', en: 'right (direction)', pos: 'adverb', category: 'directions', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
   { id: 'dir-chap', fa: 'چپ', translit: 'chap', en: 'left (direction)', pos: 'adverb', category: 'directions', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
   { id: 'dir-mostaghim', fa: 'مستقیم', translit: 'mostaqim', en: 'straight ahead', pos: 'adverb', category: 'directions', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'dir-nazdik', fa: 'نزدیک', translit: 'nazdik', en: 'near / close', pos: 'adjective', category: 'directions', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
   { id: 'dir-dur', fa: 'دور', translit: 'dur', en: 'far', pos: 'adjective', category: 'directions', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
   { id: 'dir-khiaban', fa: 'خیابان', translit: 'khiābān', en: 'street', pos: 'noun', category: 'directions', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'dir-shomal', fa: 'شمال', translit: 'shomāl', en: 'north', pos: 'noun', category: 'directions', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'dir-jonub', fa: 'جنوب', translit: 'jonub', en: 'south', pos: 'noun', category: 'directions', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'dir-shargh', fa: 'شرق', translit: 'shargh', en: 'east', pos: 'noun', category: 'directions', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
+  { id: 'dir-gharb', fa: 'غرب', translit: 'gharb', en: 'west', pos: 'noun', category: 'directions', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
 ]
 
 export const housingVocab: VocabItem[] = [

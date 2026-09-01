@@ -21,6 +21,8 @@ export const bodyVocab: VocabItem[] = [
   { id: 'body-gush', fa: 'گوش', translit: 'gush', en: 'ear', pos: 'noun', category: 'body', register: 'neutral', frequency: 2, level: 2, confidence: 'high-confidence' },
   { id: 'body-dahan', fa: 'دهان', translit: 'dahān', en: 'mouth', pos: 'noun', category: 'body', register: 'neutral', frequency: 2, level: 2, confidence: 'high-confidence' },
   { id: 'body-ghalb', fa: 'قلب', translit: 'qalb', en: 'heart (organ)', pos: 'noun', category: 'body', register: 'neutral', frequency: 3, level: 2, notes: 'دل (del) is used for "heart" in the emotional/figurative sense (دلم می‌خواهد "my heart wants" = "I feel like").', confidence: 'high-confidence' },
+  { id: 'body-bini', fa: 'بینی', translit: 'bini', en: 'nose', pos: 'noun', category: 'body', register: 'neutral', frequency: 2, level: 2, altEn: ['دماغ (damāgh) is the everyday colloquial word for "nose".'], confidence: 'high-confidence' },
+  { id: 'body-mo', fa: 'مو', translit: 'mu', en: 'hair', pos: 'noun', category: 'body', register: 'neutral', frequency: 2, level: 2, pluralFa: 'موها', confidence: 'high-confidence' },
 ]
 
 export const natureVocab: VocabItem[] = [
@@ -36,4 +38,8 @@ export const natureVocab: VocabItem[] = [
   { id: 'nat-bad', fa: 'باد', translit: 'bād', en: 'wind', pos: 'noun', category: 'weather', register: 'neutral', frequency: 2, level: 1, confidence: 'high-confidence' },
   { id: 'nat-havakhube', fa: 'هوا خوب است', translit: 'havā khub ast', en: 'the weather is nice', pos: 'phrase', category: 'weather', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
   { id: 'nat-havagarmast', fa: 'هوا گرم است', translit: 'havā garm ast', en: "it's hot out", pos: 'phrase', category: 'weather', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'nat-havasarde', fa: 'هوا سرد است', translit: 'havā sard ast', en: "it's cold out", pos: 'phrase', category: 'weather', register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' },
+  { id: 'nat-aftab', fa: 'آفتاب', translit: 'āftāb', en: 'sun / sunshine', pos: 'noun', category: 'weather', register: 'neutral', frequency: 1, level: 1, altEn: ['آفتابی است (āftābi ast) = "it is sunny".'], confidence: 'high-confidence' },
+  { id: 'nat-abr', fa: 'ابر', translit: 'abr', en: 'cloud', pos: 'noun', category: 'weather', register: 'neutral', frequency: 2, level: 1, altEn: ['ابری است (abri ast) = "it is cloudy".'], confidence: 'high-confidence' },
+  { id: 'nat-dama', fa: 'دما', translit: 'damā', en: 'temperature', pos: 'noun', category: 'weather', register: 'neutral', frequency: 2, level: 2, confidence: 'high-confidence' },
 ]

@@ -63,7 +63,7 @@ export const units: Unit[] = [
   {
     id: 'u1-food', level: 1, order: 9, title: 'Food & Drink', titleFa: 'غذا و نوشیدنی',
     description: 'Order food, say what you like, and talk about being hungry or thirsty.',
-    vocabIds: ['food-ghaza', 'food-nan', 'food-berenj', 'food-ab', 'food-chay', 'food-ghahve', 'food-miveh', 'food-sib', 'food-panir', 'food-tokhmemorgh', 'food-gusht', 'food-morgh', 'food-restoran', 'food-menu', 'food-goshnam', 'food-tashnamme', 'food-khoshmazast'],
+    vocabIds: ['food-ghaza', 'food-nan', 'food-berenj', 'food-ab', 'food-chay', 'food-ghahve', 'food-miveh', 'food-sib', 'food-panir', 'food-tokhmemorgh', 'food-gusht', 'food-morgh', 'food-restoran', 'food-menu', 'food-garson', 'food-sefaresh', 'food-nushidani', 'food-goshnam', 'food-tashnamme', 'food-khoshmazast'],
     sentenceIds: ['s-past-khordim'],
     lessonCount: 2,
   },
@@ -123,7 +123,7 @@ export const units: Unit[] = [
   {
     id: 'u2-travel', level: 2, order: 17, title: 'Getting Around: Travel & Directions', titleFa: 'سفر و مسیر',
     description: 'Transportation, asking for directions, and finding your way.',
-    vocabIds: ['trav-havapeyma', 'trav-forudgah', 'trav-ghatar', 'trav-otobus', 'trav-taxi', 'trav-mashin', 'trav-bilit', 'trav-safar', 'trav-hotel', 'dir-rast', 'dir-chap', 'dir-mostaghim', 'dir-nazdik', 'dir-dur', 'dir-khiaban'],
+    vocabIds: ['trav-havapeyma', 'trav-forudgah', 'trav-ghatar', 'trav-otobus', 'trav-taxi', 'trav-mashin', 'trav-bilit', 'trav-safar', 'trav-hotel', 'trav-chamedan', 'trav-viza', 'trav-naghshe', 'trav-docharkhe', 'trav-metro', 'trav-ranande', 'dir-rast', 'dir-chap', 'dir-mostaghim', 'dir-nazdik', 'dir-dur', 'dir-khiaban', 'dir-shomal', 'dir-jonub', 'dir-shargh', 'dir-gharb'],
     lessonCount: 2,
   },
   {
