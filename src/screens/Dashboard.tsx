@@ -34,7 +34,7 @@ export function Dashboard() {
   const mistakes = useAsyncData(() => getRecentMistakes(5), [])
   const settings = useLiveQuery(() => getSettings(), [])
   const totalReviewables = useLiveQuery(
-    () => db.reviewStates.where('state').notEqual('new').count(),
+    () => db.reviewStates.where('state').notEqual('new').and((s) => !s.suspended).count(),
     [],
   )
   const savedItemsById = useLiveQuery(

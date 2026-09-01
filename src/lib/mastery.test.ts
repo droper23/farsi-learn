@@ -40,6 +40,25 @@ describe('isMastered (M1 — single shared definition)', () => {
   })
 })
 
+describe('suspended items excluded from progress (H3)', () => {
+  it('categoryProgress does not count a suspended vocab item as introduced or mastered', () => {
+    const vocabulary = [vocab('a', 'food')]
+    const suspendedMastered = state({
+      kind: 'vocab', itemId: 'a', key: 'vocab:a', state: 'review', intervalDays: 30, suspended: true,
+    })
+    const result = categoryProgress(vocabulary, [suspendedMastered])
+    expect(result[0]).toEqual({ category: 'food', total: 1, introduced: 0, mastered: 0 })
+  })
+
+  it('letterMasteryLevel/letterMastery treat a suspended letter as not-started', () => {
+    const suspended = state({ kind: 'alphabet', itemId: 'alef', key: 'alphabet:alef', state: 'review', intervalDays: 30, suspended: true })
+    expect(letterMasteryLevel(suspended)).toBe('mastered') // the raw state itself is unaffected
+    const alphabet = [{ id: 'alef', order: 1 } as AlphabetLetter]
+    const result = letterMastery(alphabet, [suspended])
+    expect(result[0].level).toBe('not-started') // but excluded once looked up through the reviewStates list
+  })
+})
+
 describe('categoryProgress', () => {
   it('counts totals, introduced, and mastered per category', () => {
     const vocabulary = [vocab('a', 'food'), vocab('b', 'food'), vocab('c', 'work')]

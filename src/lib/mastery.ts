@@ -34,8 +34,10 @@ export function isMastered(state: ReviewState | undefined): boolean {
 }
 
 export function categoryProgress(vocabulary: VocabItem[], reviewStates: ReviewState[]): CategoryProgress[] {
+  // Suspended items (H3 — learner explicitly opted out) shouldn't count as
+  // "introduced" or "mastered" — they're absent from the review queue.
   const stateByItemId = new Map<string, ReviewState>()
-  for (const s of reviewStates) if (s.kind === 'vocab') stateByItemId.set(s.itemId, s)
+  for (const s of reviewStates) if (s.kind === 'vocab' && !s.suspended) stateByItemId.set(s.itemId, s)
 
   const byCategory = new Map<VocabCategory, CategoryProgress>()
   for (const v of vocabulary) {
@@ -72,7 +74,7 @@ export interface LetterMastery {
 
 export function letterMastery(alphabet: AlphabetLetter[], reviewStates: ReviewState[]): LetterMastery[] {
   const stateByItemId = new Map<string, ReviewState>()
-  for (const s of reviewStates) if (s.kind === 'alphabet') stateByItemId.set(s.itemId, s)
+  for (const s of reviewStates) if (s.kind === 'alphabet' && !s.suspended) stateByItemId.set(s.itemId, s)
   return alphabet
     .slice()
     .sort((a, b) => a.order - b.order)

@@ -16,7 +16,9 @@ import { PersianText } from '../components/shared/PersianText'
 export function ProgressSettings() {
   const settings = useLiveQuery(() => getSettings(), [])
   const reviewCounts = useLiveQuery(async () => {
-    const all = await db.reviewStates.toArray()
+    // Suspended items (H3 — "remove from review") are deliberately opted
+    // out by the learner; they shouldn't inflate any of these buckets.
+    const all = (await db.reviewStates.toArray()).filter((s) => !s.suspended)
     return {
       total: all.length,
       new: all.filter((s) => s.state === 'new').length,
@@ -26,6 +28,14 @@ export function ProgressSettings() {
     }
   }, [])
   const savedItems = useLiveQuery(() => db.savedItems.toArray(), []) ?? []
+  // vocabId -> suspended, for the "stop reviewing" toggle on each saved
+  // word below (H3: previously there was no way to suspend a 'vocab' item
+  // at all — only 'custom' entries got suspended, and only on delete).
+  const vocabSuspendedById = useLiveQuery(
+    () => db.reviewStates.where('kind').equals('vocab').toArray()
+      .then((states) => new Map(states.map((s) => [s.itemId, s.suspended ?? false]))),
+    [],
+  ) ?? new Map<string, boolean>()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [customFa, setCustomFa] = useState('')
@@ -78,6 +88,14 @@ export function ProgressSettings() {
       // states — suspend is the existing mechanism, see progressRepo.ts).
       await suspendItem('custom', item.id, true)
     }
+    // A vocab-backed saved item is real curriculum vocabulary, not
+    // learner-authored content — un-saving it (removing the bookmark)
+    // deliberately does NOT touch its review queue membership. "Stop
+    // reviewing" below is the separate, explicit control for that (H3).
+  }
+
+  async function handleToggleSuspendVocab(vocabId: string, suspended: boolean) {
+    await suspendItem('vocab', vocabId, suspended)
   }
 
   async function handleReset() {
@@ -146,10 +164,13 @@ export function ProgressSettings() {
           <Card>
             <p className="mb-3 text-sm font-medium">Saved words ({savedItems.length})</p>
             <p className="mb-3 text-xs text-[var(--color-ink-muted)]">
-              All saved words are in your review queue alongside your lessons.
+              Saved words join your review queue. "Un-save" just removes the bookmark here; "Stop reviewing"
+              also takes it out of your review queue.
             </p>
             <ul className="flex flex-col gap-2">
-              {savedItems.map((s) => (
+              {savedItems.map((s) => {
+                const suspended = s.vocabId ? (vocabSuspendedById.get(s.vocabId) ?? false) : false
+                return (
                 <li key={s.id} className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex min-w-0 flex-1 items-baseline gap-2">
                     <bdi lang="fa" dir="rtl" className="fa-text shrink-0">{s.fa}</bdi>
@@ -159,7 +180,22 @@ export function ProgressSettings() {
                         your own word
                       </span>
                     )}
+                    {suspended && (
+                      <span className="shrink-0 rounded-full bg-[var(--color-surface-raised)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-ink-muted)]">
+                        not being reviewed
+                      </span>
+                    )}
                   </div>
+                  {s.vocabId && (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleSuspendVocab(s.vocabId!, !suspended)}
+                      aria-label={suspended ? `Resume reviewing "${s.en}"` : `Stop reviewing "${s.en}"`}
+                      className="shrink-0 rounded-full px-2 py-1 text-xs font-medium text-[var(--color-ink-muted)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand)]"
+                    >
+                      {suspended ? 'Resume' : 'Stop reviewing'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleDeleteSaved(s)}
@@ -169,7 +205,8 @@ export function ProgressSettings() {
                     ✕
                   </button>
                 </li>
-              ))}
+                )
+              })}
             </ul>
           </Card>
         )}
