@@ -22,7 +22,16 @@ export interface CategoryProgress {
   mastered: number
 }
 
-const MASTERED_INTERVAL_DAYS = 21
+/** Single definition of "mastered", shared by every screen that shows a
+ *  mastered count (Stats' letter/category grids, Profile's "Learning
+ *  stats"). Previously Profile used a different threshold (60 days) than
+ *  Stats (21 days), so the same data produced two different "mastered"
+ *  numbers on adjacent screens — see review M1. */
+export const MASTERED_INTERVAL_DAYS = 21
+
+export function isMastered(state: ReviewState | undefined): boolean {
+  return state?.state === 'review' && state.intervalDays >= MASTERED_INTERVAL_DAYS
+}
 
 export function categoryProgress(vocabulary: VocabItem[], reviewStates: ReviewState[]): CategoryProgress[] {
   const stateByItemId = new Map<string, ReviewState>()
@@ -35,7 +44,7 @@ export function categoryProgress(vocabulary: VocabItem[], reviewStates: ReviewSt
     const state = stateByItemId.get(v.id)
     if (state) {
       row.introduced += 1
-      if (state.state === 'review' && state.intervalDays >= MASTERED_INTERVAL_DAYS) row.mastered += 1
+      if (isMastered(state)) row.mastered += 1
     }
     byCategory.set(v.category, row)
   }
@@ -51,7 +60,7 @@ export type LetterMasteryLevel = 'not-started' | 'introduced' | 'review' | 'mast
 export function letterMasteryLevel(state: ReviewState | undefined): LetterMasteryLevel {
   if (!state) return 'not-started'
   if (state.state === 'new') return 'not-started'
-  if (state.state === 'review' && state.intervalDays >= MASTERED_INTERVAL_DAYS) return 'mastered'
+  if (isMastered(state)) return 'mastered'
   if (state.state === 'review') return 'review'
   return 'introduced' // learning / relearning
 }

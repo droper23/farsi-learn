@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import type { WordOrderExercise } from '../../lib/exercises/types'
+import type { RatingForecast } from '../../srs/types'
 import { gradeWordOrder } from '../../lib/exercises/grade'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
+import { NextReviewLine } from '../shared/NextReviewLine'
 
 interface Props {
   exercise: WordOrderExercise
   onComplete: (correct: boolean, hintsUsed: number) => void
+  forecasts?: RatingForecast[]
 }
 
-export function WordOrderRunner({ exercise, onComplete }: Props) {
+export function WordOrderRunner({ exercise, onComplete, forecasts }: Props) {
   const [pool, setPool] = useState(exercise.words)
   const [chosen, setChosen] = useState<typeof exercise.words>([])
   const [submitted, setSubmitted] = useState(false)
@@ -86,6 +89,7 @@ export function WordOrderRunner({ exercise, onComplete }: Props) {
               {exercise.correctOrder.map((id) => exercise.words.find((w) => w.id === id)?.fa).join(' ')}
             </div>
           )}
+          <NextReviewLine exercise={exercise} correct={correct} hintsUsed={hintsRevealed} forecasts={forecasts} />
           <Button onClick={() => onComplete(correct, hintsRevealed)} fullWidth>Continue</Button>
         </div>
       )}

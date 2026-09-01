@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import type { ListeningExercise } from '../../lib/exercises/types'
+import type { RatingForecast } from '../../srs/types'
 import { gradeListening } from '../../lib/exercises/grade'
 import { canPronounce, pronouncePersian } from '../../lib/speech'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
+import { NextReviewLine } from '../shared/NextReviewLine'
 
 interface Props {
   exercise: ListeningExercise
   onComplete: (correct: boolean, hintsUsed: number) => void
+  forecasts?: RatingForecast[]
 }
 
 /** Listening comprehension: play (and replay) the Persian audio — a
@@ -19,7 +22,7 @@ interface Props {
  *  exercise, it gracefully falls back to showing the Persian text +
  *  transliteration directly, clearly labeled as a fallback, rather than
  *  being unusable. */
-export function ListeningRunner({ exercise, onComplete }: Props) {
+export function ListeningRunner({ exercise, onComplete, forecasts }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hintsRevealed, setHintsRevealed] = useState(0)
   const [voiceAvailable] = useState(() => canPronounce(exercise.audioText))
@@ -101,6 +104,7 @@ export function ListeningRunner({ exercise, onComplete }: Props) {
               <bdi lang="fa" dir="rtl" className="fa-text">{exercise.audioText}</bdi> — {exercise.audioTranslit}
             </p>
           )}
+          <NextReviewLine exercise={exercise} correct={correct} hintsUsed={hintsRevealed} forecasts={forecasts} />
           <Button onClick={() => onComplete(correct, hintsRevealed)} fullWidth>Continue</Button>
         </div>
       )}

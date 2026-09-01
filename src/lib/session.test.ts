@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../storage/db'
 import { getOrCreateReviewState } from '../storage/progressRepo'
-import { buildNextLesson, buildFocusedSession, exerciseForReviewable } from './session'
+import { buildNextLesson, buildFocusedSession, exerciseForReviewable, forecastForReviewable } from './session'
 import type { ReviewState } from '../srs/types'
 
 beforeEach(async () => {
@@ -37,13 +37,38 @@ describe('matching exercises in lesson rotation', () => {
     }
   })
 
-  it('does not add a matching batch for a lesson with fewer than 4 new vocab items', async () => {
-    // The very first lesson (alphabet only, no vocab) should never produce
-    // a matching exercise — there's nothing to match.
+  it('does not add a vocab matching batch for a lesson with fewer than 4 new vocab items', async () => {
+    // The very first lesson has no vocabIds at all, so it can never produce
+    // a *vocab* matching exercise — there's no vocab to match.
     const plan = await buildNextLesson()
     expect(plan?.unit.id).toBe('u1-alphabet-1')
-    const matchingSteps = (plan?.steps ?? []).filter((s) => s.step === 'exercise' && s.exercise.kind === 'matching')
-    expect(matchingSteps.length).toBe(0)
+    const matchingSteps = (plan?.steps ?? []).filter(
+      (s): s is Extract<typeof s, { step: 'exercise' }> => s.step === 'exercise' && s.exercise.kind === 'matching',
+    )
+    for (const s of matchingSteps) {
+      const pairIds = s.exercise.kind === 'matching' ? s.exercise.pairs.map((p) => p.id) : []
+      // Every pair id in this lesson's matching batch(es) should be one of
+      // this lesson's alphabet ids, never a vocab id (there are none).
+      expect(pairIds.every((id) => plan?.steps.some((t) => t.step === 'teach' && t.contentType === 'alphabet' && t.id === id))).toBe(true)
+    }
+  })
+
+  it('adds an alphabet letter-matching batch (4-6 pairs) when a lesson introduces 4+ new letters with example words', async () => {
+    // u1-alphabet-1's first lesson introduces 4 letters (11 letters / 3
+    // lessons, chunked) — enough to clear the same 4-pair minimum used for
+    // vocab matching (review M7: generateLetterWordMatching was previously
+    // authored but never wired up).
+    const plan = await buildNextLesson()
+    expect(plan?.unit.id).toBe('u1-alphabet-1')
+    const matchingSteps = (plan?.steps ?? []).filter(
+      (s): s is Extract<typeof s, { step: 'exercise' }> => s.step === 'exercise' && s.exercise.kind === 'matching',
+    )
+    expect(matchingSteps.length).toBeGreaterThan(0)
+    for (const s of matchingSteps) {
+      const pairs = s.exercise.kind === 'matching' ? s.exercise.pairs : []
+      expect(pairs.length).toBeGreaterThanOrEqual(4)
+      expect(pairs.length).toBeLessThanOrEqual(6)
+    }
   })
 })
 
@@ -90,6 +115,29 @@ describe('full SRS integration for saved words (custom entries)', () => {
   it('returns null for a custom id with no matching saved item (deleted/unknown)', async () => {
     const ex = await exerciseForReviewable('custom', 'does-not-exist', 'standard')
     expect(ex).toBeNull()
+  })
+})
+
+describe('forecastForReviewable (M2 — SRS legibility)', () => {
+  it('returns one forecast per rating, each strictly due later than now for a brand-new item', async () => {
+    const now = Date.now()
+    const forecasts = await forecastForReviewable('vocab', 'greet-salam', now)
+    expect(forecasts.map((f) => f.rating).sort()).toEqual(['again', 'easy', 'good', 'hard'])
+    for (const f of forecasts) expect(f.dueAt).toBeGreaterThanOrEqual(now)
+  })
+
+  it('reflects the item\'s actual current state, not always a fresh "new" item', async () => {
+    const now = Date.now()
+    await getOrCreateReviewState('vocab', 'greet-salam', now)
+    // Graduate the item into 'review' state first.
+    const { recordReview } = await import('../storage/progressRepo')
+    await recordReview('vocab', 'greet-salam', 'easy', true, now)
+
+    const forecasts = await forecastForReviewable('vocab', 'greet-salam', now + 1000)
+    const good = forecasts.find((f) => f.rating === 'good')!
+    // Already graduated to 'review' with a multi-day interval — a 'good'
+    // forecast should be more than a day out, not a few-minute learning step.
+    expect(good.dueAt - (now + 1000)).toBeGreaterThan(20 * 60 * 60 * 1000)
   })
 })
 

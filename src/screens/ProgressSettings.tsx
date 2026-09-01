@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, getSettings, updateSettings, type SavedItem } from '../storage/db'
 import { getOrCreateReviewState, suspendItem } from '../storage/progressRepo'
 import { exportBackup, downloadBackup, importBackup, resetAllProgress, BackupImportError } from '../storage/backup'
+import { isMastered } from '../lib/mastery'
 import { useAuth } from '../auth/useAuth'
 import { uploadProgress, downloadProgress } from '../auth/sync'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
@@ -21,7 +22,7 @@ export function ProgressSettings() {
       new: all.filter((s) => s.state === 'new').length,
       learning: all.filter((s) => s.state === 'learning' || s.state === 'relearning').length,
       review: all.filter((s) => s.state === 'review').length,
-      mastered: all.filter((s) => s.state === 'review' && s.intervalDays >= 60).length,
+      mastered: all.filter(isMastered).length,
     }
   }, [])
   const savedItems = useLiveQuery(() => db.savedItems.toArray(), []) ?? []
@@ -232,6 +233,15 @@ export function ProgressSettings() {
               type="checkbox"
               checked={settings?.showTransliteration ?? true}
               onChange={(e) => updateSettings({ showTransliteration: e.target.checked })}
+              className="h-5 w-5"
+            />
+          </label>
+          <label className="flex items-center justify-between py-2">
+            <span className="text-sm">Reduce motion</span>
+            <input
+              type="checkbox"
+              checked={settings?.reducedMotion ?? false}
+              onChange={(e) => updateSettings({ reducedMotion: e.target.checked })}
               className="h-5 w-5"
             />
           </label>

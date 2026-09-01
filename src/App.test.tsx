@@ -154,6 +154,7 @@ describe('App smoke test', () => {
       const textInput = screen.queryByRole('textbox') as HTMLInputElement | null
       const wordPool = screen.queryAllByTestId('word-pool-item')
       const options = screen.queryAllByTestId('exercise-option')
+      const matchingLeft = (screen.queryAllByTestId('matching-left') as HTMLButtonElement[]).filter((el) => !el.disabled)
       const checkButton = screen.queryByRole('button', { name: /^Check$/i }) as HTMLButtonElement | null
       const continueButton = screen.queryByRole('button', { name: /^Continue$/i })
 
@@ -166,6 +167,15 @@ describe('App smoke test', () => {
         for (const w of wordPool) await user.click(w)
         await waitFor(() => expect(checkButton).not.toBeDisabled())
         await user.click(checkButton!)
+      } else if (matchingLeft.length > 0) {
+        // Matching exercise: click a left pair, then the right button
+        // sharing its data-pair-id (matched by our own generated id, not
+        // by reading the displayed text) — repeat until all pairs matched.
+        const left = matchingLeft[0]
+        const pairId = left.getAttribute('data-pair-id')
+        await user.click(left)
+        const right = screen.getAllByTestId('matching-right').find((el) => el.getAttribute('data-pair-id') === pairId) as HTMLButtonElement
+        await user.click(right)
       } else if (options.length > 0) {
         await user.click(options[0])
       } else {

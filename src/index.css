@@ -118,6 +118,10 @@ body {
   color: var(--color-brand-strong);
 }
 
+/* Reduced motion: the OS-level media query, OR an explicit in-app override
+   (Settings > Reduce motion — see lib/theme.ts applyReducedMotion) for
+   learners whose OS/browser doesn't expose or reliably report the
+   preference. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -127,6 +131,13 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+[data-reduced-motion='true'] * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* Larger, calmer focus ring than the browser default; visible in both themes. */

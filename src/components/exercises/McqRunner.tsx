@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import type { McqExercise } from '../../lib/exercises/types'
+import type { RatingForecast } from '../../srs/types'
 import { gradeMcq } from '../../lib/exercises/grade'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
+import { NextReviewLine } from '../shared/NextReviewLine'
 
 interface Props {
   exercise: McqExercise
   onComplete: (correct: boolean, hintsUsed: number) => void
+  forecasts?: RatingForecast[]
 }
 
-export function McqRunner({ exercise, onComplete }: Props) {
+export function McqRunner({ exercise, onComplete, forecasts }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hintsRevealed, setHintsRevealed] = useState(0)
   const answered = selected !== null
@@ -64,6 +67,7 @@ export function McqRunner({ exercise, onComplete }: Props) {
           <p className={correct ? 'font-medium text-[var(--color-good)]' : 'font-medium text-[var(--color-bad)]'}>
             {correct ? 'Correct!' : 'Not quite.'}
           </p>
+          <NextReviewLine exercise={exercise} correct={correct} hintsUsed={hintsRevealed} forecasts={forecasts} />
           <Button onClick={() => onComplete(correct, hintsRevealed)} fullWidth>Continue</Button>
         </div>
       )}

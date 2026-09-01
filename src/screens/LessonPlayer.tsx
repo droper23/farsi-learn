@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { buildNextLesson, markLessonComplete, getTodaySummary } from '../lib/session'
+import { buildNextLesson, markLessonComplete, getTodaySummary, forecastForReviewable } from '../lib/session'
 import { recordReview } from '../storage/progressRepo'
 import { ratingFor } from '../lib/exercises/grade'
 import { getSettings } from '../storage/db'
@@ -29,6 +29,12 @@ export function LessonPlayer() {
   // snapshot from before the lesson started.
   const settings = useLiveQuery(() => getSettings(), [])
   const nextSummary = useAsyncData(() => getTodaySummary(), [finishedAt])
+  const currentStep = plan.data?.steps[stepIndex]
+  const currentReviewable = currentStep?.step === 'exercise' ? currentStep.exercise.reviewable : undefined
+  const forecasts = useAsyncData(
+    () => currentReviewable ? forecastForReviewable(currentReviewable.kind, currentReviewable.itemId) : Promise.resolve(undefined),
+    [currentReviewable?.kind, currentReviewable?.itemId],
+  )
 
   async function advance() {
     if (!plan.data) return
@@ -134,7 +140,7 @@ export function LessonPlayer() {
           <TeachCard contentType={step.contentType} id={step.id} onContinue={advance} />
         )}
         {step.step === 'exercise' && (
-          <ExerciseRunner exercise={step.exercise} onComplete={handleExerciseComplete} />
+          <ExerciseRunner exercise={step.exercise} onComplete={handleExerciseComplete} forecasts={forecasts.data ?? undefined} />
         )}
       </div>
     </div>

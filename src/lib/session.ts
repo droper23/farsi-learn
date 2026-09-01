@@ -1,8 +1,9 @@
 import { db } from '../storage/db'
 import { getDueSummary, getOrCreateReviewState, getReviewStates, getSchedulerConfig } from '../storage/progressRepo'
-import type { ReviewState } from '../srs/types'
+import type { ReviewState, RatingForecast } from '../srs/types'
 import { DEFAULT_SCHEDULER_CONFIG } from '../srs/types'
-import type { ReviewableKind, VocabCategory, VocabItem } from '../content/types'
+import { forecastRatings } from '../srs/scheduler'
+import type { ReviewableKind, VocabCategory, VocabItem, AlphabetLetter } from '../content/types'
 import { allUnitsSorted, findUnit } from '../content/curriculum'
 import type { Unit } from '../content/types'
 import { findLetter } from '../content/alphabet'
@@ -14,7 +15,7 @@ import { hasConjugableStems, hasRegularPresent, type ConjugationTense } from './
 import type { Exercise } from './exercises/types'
 import {
   generateVocabMcq, generateVocabTypeAnswer, generateVocabMatching, generateVocabListening,
-  generateLetterSoundMcq, generateLetterNameMcq, generateLetterPositionMcq,
+  generateLetterSoundMcq, generateLetterNameMcq, generateLetterPositionMcq, generateLetterWordMatching,
   generateSentenceWordOrder, generateSentenceTranslationMcq, generateSentenceFillBlank,
   generateSentenceListening, generateCustomMcq, generateCustomTypeAnswer,
   generatePassageComprehensionMcq, generateConjugationMcq, generateConjugationTypeAnswer,
@@ -160,6 +161,19 @@ export async function exerciseForReviewable(kind: ReviewableKind, itemId: string
   const sentence = findSentence(sentenceId)
   if (!sentence) return null
   return generateSentenceFillBlank(sentence) ?? generateSentenceTranslationMcq(sentence, sentences)
+}
+
+/** What each of the four ratings would do to this item's next-due date, for
+ *  the "Next review: ~X" line shown after grading (review M2 — the
+ *  scheduler was previously invisible to learners: forecastRatings existed
+ *  but had no caller). Reuses getOrCreateReviewState so it's safe to call
+ *  even for an item whose state hasn't been touched yet this session. */
+export async function forecastForReviewable(kind: ReviewableKind, itemId: string, now = Date.now()): Promise<RatingForecast[]> {
+  const [state, config] = await Promise.all([
+    getOrCreateReviewState(kind, itemId, now),
+    getSchedulerConfig(),
+  ])
+  return forecastRatings(state, config, now)
 }
 
 // ---------------------------------------------------------------------------
@@ -331,6 +345,15 @@ export async function buildNextLesson(unitId?: string): Promise<LessonPlan | nul
   for (let i = 0; i < newVocabItems.length; i += 6) {
     const batch = newVocabItems.slice(i, i + 6)
     if (batch.length >= 4) steps.push({ step: 'exercise', exercise: generateVocabMatching(batch) })
+  }
+
+  // Same batched-matching treatment for freshly-introduced alphabet letters
+  // (see comment above) — a letter-to-a-word-that-starts-with-it drill,
+  // previously an authored-but-unused generator (review M7).
+  const newLetters = content.alphabetIds.map(findLetter).filter((l): l is AlphabetLetter => !!l)
+  for (let i = 0; i < newLetters.length; i += 6) {
+    const batch = newLetters.slice(i, i + 6)
+    if (batch.length >= 4) steps.push({ step: 'exercise', exercise: generateLetterWordMatching(batch) })
   }
 
   return { unit, lessonIndex, lessonNumber: lessonIndex + 1, totalLessons: unit.lessonCount, steps }

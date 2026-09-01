@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   categoryProgress, letterMasteryLevel, letterMastery, studiedDaysInMonth, daysInMonth,
-  totalTeachableItemIds, estimateDaysToFinish,
+  totalTeachableItemIds, estimateDaysToFinish, isMastered, MASTERED_INTERVAL_DAYS,
 } from './mastery'
 import type { VocabItem, AlphabetLetter, Unit } from '../content/types'
 import type { ReviewState } from '../srs/types'
@@ -17,6 +17,28 @@ function state(overrides: Partial<ReviewState>): ReviewState {
 function vocab(id: string, category: VocabItem['category']): VocabItem {
   return { id, fa: 'س', translit: 's', en: 'x', pos: 'noun', category, register: 'neutral', frequency: 1, level: 1, confidence: 'high-confidence' }
 }
+
+describe('isMastered (M1 — single shared definition)', () => {
+  it('is true for a review-state item at or above the mastered interval', () => {
+    expect(isMastered(state({ state: 'review', intervalDays: MASTERED_INTERVAL_DAYS }))).toBe(true)
+    expect(isMastered(state({ state: 'review', intervalDays: MASTERED_INTERVAL_DAYS + 10 }))).toBe(true)
+  })
+
+  it('is false below the interval, for non-review states, and for undefined', () => {
+    expect(isMastered(state({ state: 'review', intervalDays: MASTERED_INTERVAL_DAYS - 1 }))).toBe(false)
+    expect(isMastered(state({ state: 'learning', intervalDays: 999 }))).toBe(false)
+    expect(isMastered(undefined)).toBe(false)
+  })
+
+  it('agrees with letterMasteryLevel and categoryProgress on the same boundary — the two screens (Stats, Profile) that display a "mastered" count must never disagree', () => {
+    const boundary = state({ state: 'review', intervalDays: MASTERED_INTERVAL_DAYS })
+    expect(isMastered(boundary)).toBe(true)
+    expect(letterMasteryLevel(boundary)).toBe('mastered')
+    const vocabulary = [vocab('a', 'food')]
+    const result = categoryProgress(vocabulary, [{ ...boundary, kind: 'vocab', itemId: 'a', key: 'vocab:a' }])
+    expect(result[0].mastered).toBe(1)
+  })
+})
 
 describe('categoryProgress', () => {
   it('counts totals, introduced, and mastered per category', () => {

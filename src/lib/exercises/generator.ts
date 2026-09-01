@@ -5,7 +5,7 @@ import { alphabet } from '../../content/alphabet'
 import { findSentence } from '../../content/sentences'
 import { conjugate, pronounLabel, type ConjugationPerson, type ConjugationTense } from '../conjugation'
 import type {
-  Exercise, ExerciseOption, McqExercise, TypeAnswerExercise, WordOrderExercise, MatchingExercise,
+  ExerciseOption, McqExercise, TypeAnswerExercise, WordOrderExercise, MatchingExercise,
   ListeningExercise, CustomReviewableSource,
 } from './types'
 
@@ -274,12 +274,17 @@ export function generateLetterPositionMcq(letter: AlphabetLetter): McqExercise {
   }
 }
 
+/** A letter-matched-to-a-word drill: the left column shows each letter's
+ *  isolated glyph, the right column each word's English gloss (matching
+ *  MatchingRunner's fa-left/en-right rendering, same convention as
+ *  generateVocabMatching above) — the learner has to recall a word
+ *  starting with that letter and pick its meaning. */
 export function generateLetterWordMatching(letters: AlphabetLetter[]): MatchingExercise {
   const withWords = letters.filter((l) => l.exampleWords.length > 0).slice(0, 6)
   return {
     id: exerciseId('matching-letters'), kind: 'matching',
     instructions: 'Match each letter to a word that starts with it',
-    pairs: withWords.map((l) => ({ id: l.id, fa: l.forms.isolated, translit: l.transliteration, en: l.exampleWords[0].fa })),
+    pairs: withWords.map((l) => ({ id: l.id, fa: l.forms.isolated, translit: l.transliteration, en: l.exampleWords[0].en })),
     hints: [],
   }
 }
@@ -495,15 +500,3 @@ export function generateGrammarRuleMcq(concept: GrammarConcept, pool: GrammarCon
 // ---------------------------------------------------------------------------
 
 export type ExerciseDifficultyHint = 'scaffolded' | 'standard' | 'production'
-
-/** Chooses a variety of exercise shapes for a vocab item, biased by how
- *  well the learner already knows it — struggling/new items lean on
- *  recognition (MCQ), well-established items lean on production
- *  (typing, word order) per the adaptive-difficulty requirement. */
-export function pickVocabExercise(item: VocabItem, difficulty: ExerciseDifficultyHint): Exercise {
-  const direction: 'fa-en' | 'en-fa' = Math.random() < 0.5 ? 'fa-en' : 'en-fa'
-  if (difficulty === 'production' && Math.random() < 0.6) {
-    return generateVocabTypeAnswer(item, direction)
-  }
-  return generateVocabMcq(item, direction)
-}

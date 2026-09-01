@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { applyTheme } from './lib/theme'
+import { applyTheme, applyReducedMotion } from './lib/theme'
 import { AppShell } from './components/layout/AppShell'
 import { Onboarding } from './components/onboarding/Onboarding'
 import { Dashboard } from './screens/Dashboard'
@@ -35,6 +35,10 @@ export default function App() {
   useEffect(() => {
     applyTheme(settings?.theme ?? 'system')
   }, [settings?.theme])
+
+  useEffect(() => {
+    applyReducedMotion(settings?.reducedMotion ?? false)
+  }, [settings?.reducedMotion])
 
   if (settings === undefined) return null
 

@@ -7,9 +7,9 @@ import {
   generateVocabMcq, generateVocabTypeAnswer, generateLetterSoundMcq,
   generateLetterPositionMcq, generateSentenceWordOrder, generateSentenceFillBlank,
   generateVocabListening, generateSentenceListening, generateCustomMcq, generateCustomTypeAnswer,
-  generateConjugationMcq, generateConjugationTypeAnswer, generateGrammarRuleMcq,
+  generateConjugationMcq, generateConjugationTypeAnswer, generateGrammarRuleMcq, generateLetterWordMatching,
 } from './generator'
-import { gradeMcq, gradeTypeAnswer, gradeWordOrder, gradeListening, ratingFor } from './grade'
+import { gradeMcq, gradeTypeAnswer, gradeWordOrder, gradeListening, ratingFor, nextReviewLabel } from './grade'
 import type { CustomReviewableSource } from './types'
 
 const sampleVocab = vocabulary.find((v) => v.id === 'greet-salam')!
@@ -227,5 +227,48 @@ describe('ratingFor', () => {
     const typed = generateVocabTypeAnswer(sampleVocab, 'fa-en')
     expect(ratingFor(typed, true, 0)).toBe('easy')
     expect(ratingFor(mcq, true, 0)).toBe('good')
+  })
+})
+
+describe('nextReviewLabel (M2 — SRS legibility)', () => {
+  const ex = generateVocabMcq(sampleVocab, 'fa-en')
+  const forecasts = [
+    { rating: 'again' as const, dueAt: 1_000, intervalDays: 0, state: 'relearning' as const },
+    { rating: 'hard' as const, dueAt: 60_000, intervalDays: 0, state: 'learning' as const },
+    { rating: 'good' as const, dueAt: 3 * 86_400_000, intervalDays: 3, state: 'review' as const },
+    { rating: 'easy' as const, dueAt: 4 * 86_400_000, intervalDays: 4, state: 'review' as const },
+  ]
+
+  it('finds the forecast matching the rating this answer maps to', () => {
+    expect(nextReviewLabel(forecasts, 'good', 0)).toBe('3 days')
+    expect(nextReviewLabel(forecasts, 'again', 0)).toBe('now')
+  })
+
+  it('returns undefined when no forecasts were provided', () => {
+    expect(nextReviewLabel(undefined, 'good', 0)).toBeUndefined()
+  })
+
+  it('is undefined only when forecasts is absent, not merely empty', () => {
+    expect(nextReviewLabel([], ratingFor(ex, true, 0), 0)).toBeUndefined()
+  })
+})
+
+describe('generateLetterWordMatching (M7 — previously authored, unused)', () => {
+  it('pairs each letter with its example word gloss (en), not the raw Persian word', () => {
+    const letters = alphabet.filter((l) => l.exampleWords.length > 0).slice(0, 4)
+    const ex = generateLetterWordMatching(letters)
+    expect(ex.pairs.length).toBe(4)
+    for (const pair of ex.pairs) {
+      const letter = letters.find((l) => l.id === pair.id)!
+      expect(pair.fa).toBe(letter.forms.isolated)
+      expect(pair.en).toBe(letter.exampleWords[0].en)
+    }
+  })
+
+  it('skips letters with no example words and caps at 6 pairs', () => {
+    const withWords = alphabet.filter((l) => l.exampleWords.length > 0)
+    const ex = generateLetterWordMatching(withWords)
+    expect(ex.pairs.length).toBeLessThanOrEqual(6)
+    expect(ex.pairs.length).toBeGreaterThan(0)
   })
 })

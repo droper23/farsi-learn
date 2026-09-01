@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { buildFocusedSession, type FocusedFilter } from '../lib/session'
+import { buildFocusedSession, forecastForReviewable, type FocusedFilter } from '../lib/session'
 import { recordReview } from '../storage/progressRepo'
 import { ratingFor } from '../lib/exercises/grade'
 import { useAsyncData } from '../hooks/useAsyncData'
@@ -32,6 +32,11 @@ export function FocusedSession() {
   )
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
+  const currentReviewable = exercises.data?.[index]?.reviewable
+  const forecasts = useAsyncData(
+    () => currentReviewable ? forecastForReviewable(currentReviewable.kind, currentReviewable.itemId) : Promise.resolve(undefined),
+    [currentReviewable?.kind, currentReviewable?.itemId],
+  )
 
   const title = filterBy === 'weak' ? 'Weak spots' : `Practice: ${options.category ?? ''}`
 
@@ -84,7 +89,7 @@ export function FocusedSession() {
         </div>
       </div>
       <div className="px-4 pb-8 md:px-0">
-        <ExerciseRunner exercise={list[index]} onComplete={handleComplete} />
+        <ExerciseRunner exercise={list[index]} onComplete={handleComplete} forecasts={forecasts.data ?? undefined} />
       </div>
     </div>
   )

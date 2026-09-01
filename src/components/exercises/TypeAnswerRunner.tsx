@@ -1,17 +1,20 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { TypeAnswerExercise } from '../../lib/exercises/types'
+import type { RatingForecast } from '../../srs/types'
 import { gradeTypeAnswer } from '../../lib/exercises/grade'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
+import { NextReviewLine } from '../shared/NextReviewLine'
 import { PersianKeyboard } from './PersianKeyboard'
 
 interface Props {
   exercise: TypeAnswerExercise
   onComplete: (correct: boolean, hintsUsed: number) => void
+  forecasts?: RatingForecast[]
 }
 
-export function TypeAnswerRunner({ exercise, onComplete }: Props) {
+export function TypeAnswerRunner({ exercise, onComplete, forecasts }: Props) {
   const [value, setValue] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [hintsRevealed, setHintsRevealed] = useState(0)
@@ -130,6 +133,7 @@ export function TypeAnswerRunner({ exercise, onComplete }: Props) {
               Accepted answer{exercise.acceptedAnswers.length > 1 ? 's' : ''}: {exercise.acceptedAnswers.join(' / ')}
             </p>
           )}
+          <NextReviewLine exercise={exercise} correct={correct} hintsUsed={hintsRevealed} forecasts={forecasts} />
           <Button onClick={() => onComplete(correct, hintsRevealed)} fullWidth>Continue</Button>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { buildReviewExercises, getTodaySummary } from '../lib/session'
+import { buildReviewExercises, getTodaySummary, forecastForReviewable } from '../lib/session'
 import { recordReview } from '../storage/progressRepo'
 import { ratingFor } from '../lib/exercises/grade'
 import { getSettings } from '../storage/db'
@@ -22,6 +22,11 @@ export function ReviewSession() {
   // answering a review question.
   const settings = useLiveQuery(() => getSettings(), [])
   const summary = useAsyncData(() => getTodaySummary(), [])
+  const currentReviewable = exercises.data?.[index]?.reviewable
+  const forecasts = useAsyncData(
+    () => currentReviewable ? forecastForReviewable(currentReviewable.kind, currentReviewable.itemId) : Promise.resolve(undefined),
+    [currentReviewable?.kind, currentReviewable?.itemId],
+  )
 
   async function handleComplete(correct: boolean, hintsUsed: number) {
     const list = exercises.data
@@ -107,7 +112,7 @@ export function ReviewSession() {
         </div>
       </div>
       <div className="px-4 pb-8 md:px-0">
-        <ExerciseRunner exercise={list[index]} onComplete={handleComplete} />
+        <ExerciseRunner exercise={list[index]} onComplete={handleComplete} forecasts={forecasts.data ?? undefined} />
       </div>
     </div>
   )

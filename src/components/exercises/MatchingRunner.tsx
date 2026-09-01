@@ -58,6 +58,8 @@ export function MatchingRunner({ exercise, onComplete }: Props) {
               <button
                 key={p.id}
                 type="button"
+                data-testid="matching-left"
+                data-pair-id={p.id}
                 onClick={() => chooseLeft(p.id)}
                 disabled={isMatched}
                 dir="rtl"
@@ -81,6 +83,8 @@ export function MatchingRunner({ exercise, onComplete }: Props) {
               <button
                 key={p.id}
                 type="button"
+                data-testid="matching-right"
+                data-pair-id={p.id}
                 onClick={() => chooseRight(p.id)}
                 disabled={isMatched}
                 className={`min-h-12 rounded-xl border-2 px-3 py-2 text-left text-sm transition-colors ${

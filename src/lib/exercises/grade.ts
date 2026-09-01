@@ -1,4 +1,6 @@
 import type { Exercise } from './types'
+import type { RatingForecast } from '../../srs/types'
+import { describeInterval } from '../../srs/scheduler'
 import { englishAnswerMatches, persianTextsMatch } from '../persianText'
 
 export function gradeMcq(exercise: Extract<Exercise, { kind: 'mcq' }>, selectedOptionId: string): boolean {
@@ -34,4 +36,14 @@ export function ratingFor(exercise: Exercise, correct: boolean, hintsUsed: numbe
   if (hintsUsed >= 2) return 'hard'
   if (hintsUsed === 0 && (exercise.kind === 'type-answer' || exercise.kind === 'word-order')) return 'easy'
   return 'good'
+}
+
+/** Human-friendly "comes back in ~X" label for the rating this answer maps
+ *  to, using pre-fetched forecasts (see session.ts `forecastForReviewable`)
+ *  so it's available the instant grading happens — no extra DB round trip
+ *  needed once the answer is known. Undefined when no forecast was fetched
+ *  (e.g. a matching exercise, which has no single reviewable to forecast). */
+export function nextReviewLabel(forecasts: RatingForecast[] | undefined, rating: ReturnType<typeof ratingFor>, now = Date.now()): string | undefined {
+  const forecast = forecasts?.find((f) => f.rating === rating)
+  return forecast ? describeInterval(now, forecast.dueAt) : undefined
 }
