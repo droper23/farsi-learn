@@ -8,6 +8,7 @@ import { PageHeader } from '../../components/shared/PageHeader'
 import { Card } from '../../components/shared/Card'
 import { Button } from '../../components/shared/Button'
 import { PersianText } from '../../components/shared/PersianText'
+import { DiacriticsToggle } from '../../components/shared/DiacriticsToggle'
 import { ExerciseRunner } from '../../components/exercises/ExerciseRunner'
 
 export function AlphabetLetterDetail() {
@@ -50,6 +51,9 @@ export function AlphabetLetterDetail() {
   if (practicing) {
     return (
       <div className="px-4 pt-5 md:px-0">
+        <div className="mb-4 flex justify-end">
+          <DiacriticsToggle />
+        </div>
         <ExerciseRunner key={round} exercise={exercises[round]} onComplete={onComplete} />
       </div>
     )

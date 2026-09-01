@@ -7,6 +7,7 @@
  *     digits vs. Latin digits are all "the same" for matching purposes even
  *     though they're visually/structurally different.
  */
+import { diacriticsManifest } from '../content/diacriticsManifest'
 
 const ARABIC_YEH = 'ي' // ي
 const PERSIAN_YEH = 'ی' // ی
@@ -49,4 +50,17 @@ export function englishAnswerMatches(input: string, accepted: string[]): boolean
 /** Convert Latin digits to Eastern Arabic (Persian) digits for display. */
 export function toPersianDigits(input: string | number): string {
   return String(input).replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)])
+}
+
+/** Looks up the short-vowel-diacritized form of `fa` (see
+ *  content/diacriticsManifest.ts) when `show` is true, falling back to the
+ *  plain text when it's false or no diacritized form is authored for this
+ *  exact text. Shared by every place Persian text is displayed with the
+ *  option to show vowel marks — PersianText for prompts/single words,
+ *  McqRunner for answer options (which render `fa` directly rather than
+ *  through PersianText, since they also need independent per-option
+ *  transliteration/selection-state styling). */
+export function withDiacritics(fa: string, show: boolean): string {
+  if (!show) return fa
+  return diacriticsManifest[fa] ?? fa
 }

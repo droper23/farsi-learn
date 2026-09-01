@@ -108,7 +108,7 @@ further down are kept for history.
 
 Driven by `farsi-learn-review-2026-09-01.md`, an autonomous read-only review
 that audited the whole app and produced a prioritized findings list, plus
-direct follow-up requests during the same session. 229 automated tests now
+direct follow-up requests during the same session. 234 automated tests now
 (up from 166), `npm run typecheck`/`lint`/`build` all clean.
 
 **Follow-up fixes/additions in the same session, after initial fifth-pass wrap-up:**
@@ -144,6 +144,26 @@ direct follow-up requests during the same session. 229 automated tests now
   at the alphabet screens' larger sizes but quite subtle in dense list
   views at default text size — an inherent property of the mark at small
   sizes, not a bug.
+- **Diacritics toggle moved onto every lesson/review/practice screen**
+  (`DiacriticsToggle.tsx`, a small "اَ" pill button next to the progress
+  bar) instead of living only in Profile settings — flipping it mid-session
+  ("let me peek at the vowels for this one") is the actual use case.
+  Wiring this up surfaced that the toggle previously only worked on
+  `PersianText` — MCQ answer options, matching-exercise pairs, word-order
+  tiles, and the listening-exercise post-answer reveal all render `fa`
+  text directly (for independent selection-state/transliteration styling)
+  and silently ignored the setting. New `lib/persianText.ts`
+  `withDiacritics(fa, show)` is now the one shared lookup, used
+  everywhere Persian text is displayed with the option to show vowel
+  marks, not just inside PersianText itself.
+- **Speak button: hidden, not disabled, when nothing can pronounce the
+  text.** Fill-in-the-blank sentence exercises pass a *blanked* prompt
+  (`"...zud ______"`) to `PersianText`, which never matches an audio clip
+  — the old `disabled:opacity-30` styling on the now-larger 44px button
+  rendered as a faint, confusing "ghost" circle that looked broken rather
+  than "nothing to hear here." `PersianText` now simply doesn't render
+  the button at all when `canPronounce()` is false, matching how
+  `ListeningRunner` already handles the same case.
 
 - **Real pronunciation audio, finally.** The single biggest gap: audio
   previously depended entirely on the browser's `speechSynthesis`, and

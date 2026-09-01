@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { canPronounce, pronouncePersian } from '../../lib/speech'
-import { diacriticsManifest } from '../../content/diacriticsManifest'
+import { withDiacritics } from '../../lib/persianText'
 
 interface PersianTextProps {
   fa: string
@@ -36,20 +36,19 @@ export function PersianText({ fa, translit, size = 'md', forceShowTranslit, show
   const [voiceAvailable] = useState(() => canPronounce(textToSpeak))
   // Diacritics are a display-only overlay — pronunciation lookups always
   // use the plain text, since audioManifest is keyed by it.
-  const displayFa = settings.showDiacritics ? (diacriticsManifest[fa] ?? fa) : fa
+  const displayFa = withDiacritics(fa, settings.showDiacritics)
 
   return (
     <span className={`inline-flex flex-col items-center gap-1 ${className ?? ''}`}>
       <span className="inline-flex items-center gap-2">
         <bdi lang="fa" dir="rtl" className={`fa-text ${sizeClasses[size]}`}>{displayFa}</bdi>
-        {showSpeak && (
+        {showSpeak && voiceAvailable && (
           <button
             type="button"
             onClick={() => pronouncePersian(textToSpeak)}
             aria-label="Hear an approximate, computer-generated pronunciation"
-            title={voiceAvailable ? 'Approximate pronunciation (computer-generated)' : 'No pronunciation available for this text'}
-            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand)] transition-colors hover:brightness-105 disabled:bg-transparent disabled:text-[var(--color-ink-muted)] disabled:opacity-30"
-            disabled={!voiceAvailable}
+            title="Approximate pronunciation (computer-generated)"
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand)] transition-colors hover:brightness-105"
           >
             <SpeakerIcon />
           </button>

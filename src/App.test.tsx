@@ -171,6 +171,10 @@ describe('App smoke test', () => {
     const startButton = await screen.findByRole('button', { name: /Start lesson/i })
     await user.click(startButton)
 
+    // The vowel-marks toggle is reachable directly on the lesson screen,
+    // not just tucked away in Profile settings.
+    expect(await screen.findByRole('button', { name: /Show vowel marks|Hide vowel marks/i })).toBeInTheDocument()
+
     async function waitForLoaded() {
       await waitFor(() => expect(screen.queryByText(/Loading lesson/i)).not.toBeInTheDocument())
     }

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { MatchingExercise } from '../../lib/exercises/types'
+import { useSettings } from '../../hooks/useSettings'
+import { withDiacritics } from '../../lib/persianText'
 import { Button } from '../shared/Button'
 
 interface Props {
@@ -22,6 +24,7 @@ export function MatchingRunner({ exercise, onComplete }: Props) {
   const [matched, setMatched] = useState<Set<string>>(new Set())
   const [wrongFlash, setWrongFlash] = useState<{ left: string; right: string } | null>(null)
   const [mistakes, setMistakes] = useState(0)
+  const { showDiacritics } = useSettings()
 
   const allMatched = matched.size === exercise.pairs.length
 
@@ -70,7 +73,7 @@ export function MatchingRunner({ exercise, onComplete }: Props) {
                   : 'border-[var(--color-border)] bg-[var(--color-surface)]'
                 }`}
               >
-                {p.fa}
+                {withDiacritics(p.fa, showDiacritics)}
               </button>
             )
           })}

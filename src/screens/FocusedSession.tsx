@@ -8,6 +8,7 @@ import { PageHeader } from '../components/shared/PageHeader'
 import { ProgressBar } from '../components/shared/ProgressBar'
 import { Button } from '../components/shared/Button'
 import { Card } from '../components/shared/Card'
+import { DiacriticsToggle } from '../components/shared/DiacriticsToggle'
 import { ExerciseRunner } from '../components/exercises/ExerciseRunner'
 import type { ReviewableKind, VocabCategory } from '../content/types'
 
@@ -102,6 +103,7 @@ export function FocusedSession() {
         <div className="mb-4 flex items-center gap-3">
           <button onClick={() => navigate('/')} aria-label="Exit practice" className="text-[var(--color-ink-muted)]">✕</button>
           <ProgressBar value={index} max={list.length} label={title} />
+          <DiacriticsToggle />
         </div>
       </div>
       <div className="px-4 pb-8 md:px-0">

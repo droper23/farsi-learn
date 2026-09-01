@@ -5,6 +5,8 @@ import { findGrammarConcept } from '../../content/grammar'
 import { findSentence } from '../../content/sentences'
 import { findPassage } from '../../content/passages'
 import { conjugate, hasRegularPresent, type ConjugationTense } from '../../lib/conjugation'
+import { useSettings } from '../../hooks/useSettings'
+import { withDiacritics } from '../../lib/persianText'
 import { PersianText } from '../shared/PersianText'
 import { Card } from '../shared/Card'
 import { Button } from '../shared/Button'
@@ -95,6 +97,7 @@ function ConjugationTable({ verb }: { verb: VocabItem }) {
 
 function ConjugationRows({ verb, tense, label }: { verb: VocabItem; tense: ConjugationTense; label: string }) {
   const forms = conjugate(verb, tense)
+  const { showDiacritics } = useSettings()
   return (
     <div className="rounded-xl bg-[var(--color-surface-raised)] p-3">
       <p className="mb-2 text-xs font-medium text-[var(--color-ink-muted)]">{label}</p>
@@ -102,7 +105,7 @@ function ConjugationRows({ verb, tense, label }: { verb: VocabItem; tense: Conju
         {forms.map((f) => (
           <div key={f.person} className="flex items-baseline justify-between gap-2 text-sm">
             <span className="text-[var(--color-ink-muted)]">{f.pronounFa}</span>
-            <bdi lang="fa" dir="rtl" className="fa-text">{f.fa}</bdi>
+            <bdi lang="fa" dir="rtl" className="fa-text">{withDiacritics(f.fa, showDiacritics)}</bdi>
           </div>
         ))}
       </div>
@@ -136,6 +139,7 @@ function GrammarTeach({ id }: { id: string }) {
 
 function SentenceTeach({ id }: { id: string }) {
   const s = findSentence(id)
+  const { showDiacritics } = useSettings()
   if (!s) return null
   return (
     <Card className="flex flex-col items-center gap-3 text-center">
@@ -148,7 +152,7 @@ function SentenceTeach({ id }: { id: string }) {
       <div className="flex flex-wrap justify-center gap-2 border-t border-[var(--color-border)] pt-3">
         {s.words.map((w, i) => (
           <div key={i} className="text-center">
-            <bdi lang="fa" dir="rtl" className="fa-text block text-base">{w.fa}</bdi>
+            <bdi lang="fa" dir="rtl" className="fa-text block text-base">{withDiacritics(w.fa, showDiacritics)}</bdi>
             <p className="text-xs text-[var(--color-ink-muted)]">{w.en}</p>
           </div>
         ))}
@@ -162,13 +166,14 @@ function SentenceTeach({ id }: { id: string }) {
  *  with no way to revisit them afterward). */
 export function PassageTeach({ id }: { id: string }) {
   const p = findPassage(id)
+  const { showDiacritics } = useSettings()
   if (!p) return null
   const sentences = p.sentenceIds.map(findSentence).filter((s): s is NonNullable<typeof s> => !!s)
   return (
     <Card className="flex flex-col gap-4">
       <div className="text-center">
         <p className="text-lg font-semibold">{p.title}</p>
-        {p.titleFa && <bdi lang="fa" dir="rtl" className="fa-text block text-base text-[var(--color-ink-muted)]">{p.titleFa}</bdi>}
+        {p.titleFa && <bdi lang="fa" dir="rtl" className="fa-text block text-base text-[var(--color-ink-muted)]">{withDiacritics(p.titleFa, showDiacritics)}</bdi>}
         <span className="mt-1 inline-block rounded-full bg-[var(--color-warn-soft)] px-2 py-0.5 text-xs">{p.register}</span>
       </div>
       <div className="flex flex-col gap-4">
@@ -179,7 +184,7 @@ export function PassageTeach({ id }: { id: string }) {
             <div className="mt-2 flex flex-wrap gap-2 border-t border-[var(--color-border)] pt-2">
               {s.words.map((w, i) => (
                 <div key={i} className="text-center">
-                  <bdi lang="fa" dir="rtl" className="fa-text block text-sm">{w.fa}</bdi>
+                  <bdi lang="fa" dir="rtl" className="fa-text block text-sm">{withDiacritics(w.fa, showDiacritics)}</bdi>
                   <p className="text-[10px] text-[var(--color-ink-muted)]">{w.en}</p>
                 </div>
               ))}

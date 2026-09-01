@@ -27,3 +27,16 @@ describe('PersianText — diacritics (vowel marks) toggle', () => {
     await waitFor(() => expect(screen.getByText('یک متن ناشناخته')).toBeInTheDocument())
   })
 })
+
+describe('PersianText — speak button (hidden, not disabled, when nothing can pronounce it)', () => {
+  it('renders no speak button at all for text with no audio clip and no device voice', () => {
+    render(<PersianText fa="یک متن هرگز تولید نشده" showSpeak />)
+    expect(screen.queryByRole('button', { name: /Hear an approximate/i })).not.toBeInTheDocument()
+  })
+
+  it('renders a real, enabled speak button for text that has a clip', async () => {
+    render(<PersianText fa="سلام" showSpeak />)
+    const button = await screen.findByRole('button', { name: /Hear an approximate/i })
+    expect(button).not.toBeDisabled()
+  })
+})

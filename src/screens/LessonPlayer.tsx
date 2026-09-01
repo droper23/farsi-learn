@@ -12,6 +12,7 @@ import { Button } from '../components/shared/Button'
 import { Card } from '../components/shared/Card'
 import { TeachCard } from '../components/lesson/TeachCard'
 import { ExerciseRunner } from '../components/exercises/ExerciseRunner'
+import { DiacriticsToggle } from '../components/shared/DiacriticsToggle'
 
 export function LessonPlayer() {
   const navigate = useNavigate()
@@ -133,6 +134,7 @@ export function LessonPlayer() {
         <div className="mb-2 flex items-center gap-3">
           <button onClick={() => navigate('/')} aria-label="Exit lesson" className="text-[var(--color-ink-muted)]">✕</button>
           <ProgressBar value={stepIndex} max={plan.data.steps.length} />
+          <DiacriticsToggle />
         </div>
         <p className="mb-4 truncate text-xs text-[var(--color-ink-muted)]">
           {plan.data.unit.title} — lesson {plan.data.lessonNumber} of {plan.data.totalLessons} · step {stepIndex + 1} of {plan.data.steps.length}

@@ -3,6 +3,7 @@ import type { McqExercise } from '../../lib/exercises/types'
 import type { RatingForecast } from '../../srs/types'
 import { gradeMcq } from '../../lib/exercises/grade'
 import { useSettings } from '../../hooks/useSettings'
+import { withDiacritics } from '../../lib/persianText'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
@@ -18,7 +19,7 @@ export function McqRunner({ exercise, onComplete, forecasts }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hintsRevealed, setHintsRevealed] = useState(0)
   const answered = selected !== null
-  const { showTransliteration } = useSettings()
+  const { showTransliteration, showDiacritics } = useSettings()
 
   function choose(optionId: string) {
     if (answered) return
@@ -54,7 +55,7 @@ export function McqRunner({ exercise, onComplete, forecasts }: Props) {
             >
               {opt.fa ? (
                 <span className="inline-flex flex-col gap-0.5">
-                  <bdi lang="fa" dir="rtl" className="fa-text text-xl">{opt.fa}</bdi>
+                  <bdi lang="fa" dir="rtl" className="fa-text text-xl">{withDiacritics(opt.fa, showDiacritics)}</bdi>
                   {showTransliteration && opt.translit && (
                     <span className="ltr-isolate text-xs text-[var(--color-ink-muted)]">{opt.translit}</span>
                   )}

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { WordOrderExercise } from '../../lib/exercises/types'
 import type { RatingForecast } from '../../srs/types'
 import { gradeWordOrder } from '../../lib/exercises/grade'
+import { useSettings } from '../../hooks/useSettings'
+import { withDiacritics } from '../../lib/persianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
 import { NextReviewLine } from '../shared/NextReviewLine'
@@ -17,6 +19,7 @@ export function WordOrderRunner({ exercise, onComplete, forecasts }: Props) {
   const [chosen, setChosen] = useState<typeof exercise.words>([])
   const [submitted, setSubmitted] = useState(false)
   const [hintsRevealed, setHintsRevealed] = useState(0)
+  const { showDiacritics } = useSettings()
 
   const correct = submitted && gradeWordOrder(exercise, chosen.map((w) => w.id))
 
@@ -51,7 +54,7 @@ export function WordOrderRunner({ exercise, onComplete, forecasts }: Props) {
               disabled={submitted}
               className="fa-text rounded-xl bg-[var(--color-brand-soft)] px-3 py-2 text-lg text-[var(--color-brand-strong)]"
             >
-              {w.fa}
+              {withDiacritics(w.fa, showDiacritics)}
             </button>
           ))}
         </div>
@@ -67,7 +70,7 @@ export function WordOrderRunner({ exercise, onComplete, forecasts }: Props) {
             disabled={submitted}
             className="fa-text rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-lg hover:bg-[var(--color-brand-soft)]"
           >
-            {w.fa}
+            {withDiacritics(w.fa, showDiacritics)}
           </button>
         ))}
       </div>
@@ -86,7 +89,10 @@ export function WordOrderRunner({ exercise, onComplete, forecasts }: Props) {
           </p>
           {!correct && (
             <div dir="rtl" className="fa-text rounded-xl bg-[var(--color-good-soft)] px-3 py-2 text-lg">
-              {exercise.correctOrder.map((id) => exercise.words.find((w) => w.id === id)?.fa).join(' ')}
+              {exercise.correctOrder
+                .map((id) => exercise.words.find((w) => w.id === id)?.fa)
+                .map((fa) => (fa ? withDiacritics(fa, showDiacritics) : ''))
+                .join(' ')}
             </div>
           )}
           <NextReviewLine exercise={exercise} correct={correct} hintsUsed={hintsRevealed} forecasts={forecasts} />

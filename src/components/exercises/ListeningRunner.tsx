@@ -3,6 +3,8 @@ import type { ListeningExercise } from '../../lib/exercises/types'
 import type { RatingForecast } from '../../srs/types'
 import { gradeListening } from '../../lib/exercises/grade'
 import { canPronounce, pronouncePersian } from '../../lib/speech'
+import { useSettings } from '../../hooks/useSettings'
+import { withDiacritics } from '../../lib/persianText'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
@@ -27,6 +29,7 @@ export function ListeningRunner({ exercise, onComplete, forecasts }: Props) {
   const [hintsRevealed, setHintsRevealed] = useState(0)
   const [voiceAvailable] = useState(() => canPronounce(exercise.audioText))
   const [played, setPlayed] = useState(false)
+  const { showDiacritics } = useSettings()
   const answered = selected !== null
   const correct = selected !== null && gradeListening(exercise, selected)
 
@@ -101,7 +104,7 @@ export function ListeningRunner({ exercise, onComplete, forecasts }: Props) {
           </p>
           {voiceAvailable && (
             <p className="text-sm text-[var(--color-ink-muted)]">
-              <bdi lang="fa" dir="rtl" className="fa-text">{exercise.audioText}</bdi> — {exercise.audioTranslit}
+              <bdi lang="fa" dir="rtl" className="fa-text">{withDiacritics(exercise.audioText, showDiacritics)}</bdi> — {exercise.audioTranslit}
             </p>
           )}
           <NextReviewLine exercise={exercise} correct={correct} hintsUsed={hintsRevealed} forecasts={forecasts} />

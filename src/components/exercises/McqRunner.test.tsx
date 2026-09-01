@@ -36,3 +36,20 @@ describe('McqRunner — transliteration on Persian-word options', () => {
     await waitFor(() => expect(screen.queryByText('salām')).not.toBeInTheDocument())
   })
 })
+
+describe('McqRunner — vowel-mark diacritics on Persian-word options', () => {
+  it('shows each option\'s diacritized form when the setting is on (options render outside PersianText, so this is wired independently)', async () => {
+    await db.settings.put({ ...DEFAULT_SETTINGS, showDiacritics: true })
+    render(<McqRunner exercise={exercise} onComplete={() => {}} />)
+    expect(await screen.findByText('سَلام')).toBeInTheDocument()
+    expect(screen.getByText('خُداحافِظ')).toBeInTheDocument()
+    expect(screen.queryByText('سلام')).not.toBeInTheDocument()
+  })
+
+  it('shows the plain form when the setting is off', async () => {
+    await db.settings.put({ ...DEFAULT_SETTINGS, showDiacritics: false })
+    render(<McqRunner exercise={exercise} onComplete={() => {}} />)
+    await waitFor(() => expect(screen.getByText('سلام')).toBeInTheDocument())
+    expect(screen.queryByText('سَلام')).not.toBeInTheDocument()
+  })
+})

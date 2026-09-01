@@ -10,6 +10,7 @@ import { PageHeader } from '../components/shared/PageHeader'
 import { ProgressBar } from '../components/shared/ProgressBar'
 import { Button } from '../components/shared/Button'
 import { Card } from '../components/shared/Card'
+import { DiacriticsToggle } from '../components/shared/DiacriticsToggle'
 import { ExerciseRunner } from '../components/exercises/ExerciseRunner'
 
 export function ReviewSession() {
@@ -142,6 +143,7 @@ export function ReviewSession() {
         <div className="mb-4 flex items-center gap-3">
           <button onClick={() => navigate('/')} aria-label="Exit review" className="text-[var(--color-ink-muted)]">✕</button>
           <ProgressBar value={index} max={list.length} />
+          <DiacriticsToggle />
           {index > 0 && (
             <button
               onClick={() => setEndedEarly(true)}
