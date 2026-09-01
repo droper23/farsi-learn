@@ -1,5 +1,7 @@
 import { HashRouter, Route, Routes } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { AppShell } from './components/layout/AppShell'
+import { Onboarding } from './components/onboarding/Onboarding'
 import { Dashboard } from './screens/Dashboard'
 import { LessonMap } from './screens/LessonMap'
 import { UnitDetail } from './screens/UnitDetail'
@@ -10,6 +12,7 @@ import { AlphabetLetterDetail } from './screens/Alphabet/AlphabetLetterDetail'
 import { Dictionary } from './screens/Dictionary'
 import { ProgressSettings } from './screens/ProgressSettings'
 import { NotFound } from './screens/NotFound'
+import { getSettings } from './storage/db'
 
 /** HashRouter, deliberately: GitHub Pages serves static files with no
  *  server-side rewrite rule, so a path-based route like /review would
@@ -17,6 +20,23 @@ import { NotFound } from './screens/NotFound'
  *  the server for anything but index.html, so they just work everywhere
  *  this app is hosted without any extra Pages configuration. */
 export default function App() {
+  // Gate the whole app behind onboarding until it's complete, per the
+  // `onboardingComplete` setting — returning users (already true) skip
+  // straight to the router below, exactly as before onboarding existed.
+  const settings = useLiveQuery(() => getSettings(), [])
+
+  if (settings === undefined) return null
+
+  if (!settings.onboardingComplete) {
+    return (
+      <Onboarding
+        onFinish={(destination) => {
+          window.location.hash = destination === 'lesson' ? '#/lesson' : '#/'
+        }}
+      />
+    )
+  }
+
   return (
     <HashRouter>
       <Routes>

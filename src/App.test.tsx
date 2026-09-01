@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
-import { db } from './storage/db'
+import { db, DEFAULT_SETTINGS } from './storage/db'
 
 /**
  * End-to-end-ish smoke test: renders the real app (real IndexedDB via
@@ -19,6 +19,11 @@ beforeEach(async () => {
     db.reviewStates.clear(), db.savedItems.clear(), db.learningEvents.clear(),
     db.unitProgress.clear(), db.settings.clear(),
   ])
+  // Onboarding is exercised by its own dedicated test below (starting from
+  // a genuinely fresh/unseeded settings row); every other test pre-seeds
+  // onboardingComplete so it deterministically skips straight to the
+  // dashboard/router, matching what a returning user would see.
+  await db.settings.put({ ...DEFAULT_SETTINGS, onboardingComplete: true })
 })
 
 describe('App smoke test', () => {
@@ -104,4 +109,33 @@ describe('App smoke test', () => {
 
     expect(screen.getByText(/Lesson complete!/i)).toBeInTheDocument()
   }, 20000)
+
+  it('walks a brand-new user through onboarding before showing the dashboard', async () => {
+    const user = userEvent.setup()
+    // Genuinely fresh: no settings row at all, so onboardingComplete falls
+    // back to false (see DEFAULT_SETTINGS) exactly like a first-ever visit.
+    await db.settings.clear()
+
+    render(<App />)
+
+    expect(await screen.findByText(/Welcome to Farsi Learn/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Let's go/i }))
+
+    expect(await screen.findByText(/Set a daily goal/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Steady — 10 new items a day/i }))
+    await user.click(screen.getByRole('button', { name: /^Continue$/i }))
+
+    expect(await screen.findByText(/Show transliteration\?/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^Continue$/i }))
+
+    expect(await screen.findByText(/You're ready/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Start my first lesson/i }))
+
+    // Onboarding is gone and we land in the app proper (the lesson screen,
+    // since "Start my first lesson" was chosen) — not stuck on onboarding.
+    await waitFor(() => expect(screen.queryByText(/Welcome to Farsi Learn/i)).not.toBeInTheDocument())
+    const settings = await db.settings.get('app-settings')
+    expect(settings?.onboardingComplete).toBe(true)
+    expect(settings?.newItemsPerDay).toBe(10)
+  })
 })
