@@ -104,6 +104,74 @@ further down are kept for history.
   the explicit brief to prioritize learning effectiveness over engagement
   theater.
 
+## What changed in the fifth pass (autonomous review fixes + audio + Practice tab)
+
+Driven by `farsi-learn-review-2026-09-01.md`, an autonomous read-only review
+that audited the whole app and produced a prioritized findings list, plus
+direct follow-up requests during the same session. 222 automated tests now
+(up from 166), `npm run typecheck`/`lint`/`build` all clean.
+
+- **Real pronunciation audio, finally.** The single biggest gap: audio
+  previously depended entirely on the browser's `speechSynthesis`, and
+  Persian voice availability turned out to be inconsistent enough across
+  OS/browser combos that many learners got no audio at all. Every alphabet
+  letter name/example word, vocabulary item, and sentence (543 strings) now
+  has a real pre-generated MP3 via `edge-tts` (Microsoft's free neural TTS
+  — see `scripts/generate_audio.py`, `npm run generate:audio`), shipped
+  under `public/audio/` and looked up by exact text in
+  `src/content/audioManifest.ts`. `lib/speech.ts` `pronouncePersian()` plays
+  the clip when one exists, falls back to `speechSynthesis` otherwise
+  (mainly for learner-typed custom words). Clips are runtime-cached
+  (`CacheFirst`), not precached, so they don't add to the app's upfront
+  install size. Still explicitly labeled computer-generated, same honesty
+  stance as before — see README "Audio / pronunciation".
+- **Review findings fixed**: H1 (dashboard cap-vs-caught-up contradiction),
+  H2 (unbounded `learningEvents` log — now trimmed on every write, 90-day/
+  2000-row cap), H3 (no way to stop a saved vocab word from being drilled —
+  Profile's Saved-words list now has a "Stop reviewing" control separate
+  from un-saving), H4 (no error boundary — top-level `ErrorBoundary` now
+  wraps the app), L1/L3/L5 (dead `reducedMotion` setting now wired to a
+  real toggle, "Items in progress" no longer counts un-started items,
+  `getCurrentUnit()` returns `null` instead of a stale unit name once the
+  curriculum is complete), M1 (Profile and Stats previously disagreed on
+  the definition of "mastered" — unified into `lib/mastery.ts isMastered`),
+  M2 (the SRS scheduler was invisible — every exercise runner now shows
+  "Next review: ~3 days" after grading, via pre-fetched forecasts), M4
+  (LessonPlayer now shows "Unit — lesson N of M · step X of Y" instead of
+  a bare progress bar), M5 (ReviewSession gets an "End session" button and
+  a "Load more reviews" continuation past the 30-item batch cap), M7
+  (`generateLetterWordMatching` was dead code with a real bug — fixed and
+  wired into lesson practice; `pickVocabExercise`, a fully-superseded dead
+  export, removed).
+- **Reading library (M3).** A new `/reading` route lists all passages for
+  re-reading any time, with an optional re-take of the comprehension
+  questions — reuses `PassageTeach` (now exported from `TeachCard.tsx`)
+  as a pure browse surface.
+- **New Practice tab.** A dedicated nav item (`/practice`) consolidating
+  every way to drill material outside today's due queue: weak spots (moved
+  here from being Stats-only), a new writing-practice mode
+  (`buildWritingPractice` — forces the en→fa typing direction on
+  already-introduced vocab/custom words, since that's the closest thing a
+  browser app has to production/handwriting practice), reading practice,
+  and — new — practicing any unit directly regardless of curriculum order
+  or due dates (`buildFocusedSession({ filterBy: 'unit', unitId })`).
+- **Alphabet cheat sheet.** A new `/alphabet/cheatsheet` route: every
+  letter collapsed to its glyph/name by default (so the whole alphabet
+  fits in one scroll), expandable per-letter or all-at-once to show forms,
+  pronunciation, and — previously never surfaced anywhere in the UI —
+  whether it's a non-joining ("break") letter.
+- **Transliteration on MCQ answer options.** "Choose the correct Persian
+  word" (and fill-in-the-blank sentence) questions showed only the raw
+  Persian glyph on each option, ignoring the transliteration setting
+  entirely (the prompt already respected it; the options never did, even
+  though the data already carried `translit` per option). `McqRunner` now
+  shows each option's transliteration under it when the setting is on;
+  `generateSentenceFillBlank` now also sets a blanked `promptTranslit` so
+  the sentence prompt itself gets one.
+- **Dictionary default view.** Previously blank ("type at least 2
+  characters to search"); now shows all ~390 words A–Z by English gloss
+  before any query is typed, so there's something to browse immediately.
+
 ## What changed in the fourth pass (UX/UI polish + four new features)
 
 Synthesized from two independent proposal reviews (a content/features
@@ -449,14 +517,14 @@ actually confirmed cleanly — flag `needs-review` with a `note` otherwise.
 
 ## What's incomplete
 
-1. **No real recorded audio.** The 🔊 button uses browser `speechSynthesis`
-   as a clearly-labeled approximate aid; see README "Audio /
-   pronunciation" for why, and how to add real audio files later without
-   touching UI code. The listening-comprehension exercise type is built on
-   the same synthesized voice, with the same disclosure and the same
-   no-voice fallback — still not a substitute for real audio. Unchanged
-   this pass (see "audio-source investigation" above) — still no ethical
-   path for an AI agent to source authentic recordings itself.
+1. **No real *native-speaker* recorded audio.** Fifth pass added
+   pre-generated neural-TTS clips (`edge-tts`, see "Audio /
+   pronunciation" in the README) covering every alphabet/vocab/sentence
+   string, replacing the old browser-`speechSynthesis`-only approach and
+   its inconsistent voice availability. This closes the "many learners
+   got no audio at all" gap, but it's still computer-generated, not an
+   authentic recording — there remains no ethical path for an AI agent to
+   source real native-speaker audio itself.
 2. **The accessibility pass is automated-only, not manual.** `src/
    a11y.test.tsx` now covers 6 screens/components (dashboard, onboarding,
    Persian keyboard, an MCQ runner, dictionary browse, Stats) with
@@ -492,13 +560,11 @@ actually confirmed cleanly — flag `needs-review` with a `note` otherwise.
    code/hook logic and a Chrome DevTools manifest check, not an actual
    "tap Install and see it appear" click on the deployed site. Worth a
    spot-check on the live GitHub Pages URL after this lands.
-7. **Reading library screen and inline notes callout (fourth-pass B5/B6)
-   weren't attempted.** Both were flagged optional/lower-priority in the
-   brief. B5 would be a read-only route reusing `PassageTeach` from
-   `TeachCard.tsx` to list all `Passage`s for re-reading; B6 would surface
-   `VocabItem`/`ExampleSentence.notes` as a visually distinct callout
-   (currently rendered, just not visually distinguished from surrounding
-   teach-card text). Neither needs a data-model change.
+7. **Reading library screen (fourth-pass B5) — done in the fifth pass**,
+   at `/reading` (see above). **Inline notes callout (B6) still not
+   attempted** — `VocabItem`/`ExampleSentence.notes` are rendered but not
+   visually distinguished from surrounding teach-card text. No data-model
+   change needed.
 8. **Register-transform drill and fuzzy-graded full-sentence production
    were explicitly out of scope this pass**, per the brief — both are
    good candidates for a dedicated future pass rather than being squeezed

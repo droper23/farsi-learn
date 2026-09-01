@@ -350,5 +350,6 @@ comprehension questions). A couple of colloquial expressions/idioms are
 marked `confidence: 'needs-review'` and should be spot-checked by a Persian
 speaker before being fully trusted (`npm run audit:content` for the full
 list). The accessibility pass is automated-only (axe-core) so far, not
-manually screen-reader-tested. There's still no real recorded audio (see
-"Audio / pronunciation" above).
+manually screen-reader-tested. There's still no real native-speaker
+recorded audio — see "Audio / pronunciation" above for the pre-generated
+TTS clips that replaced the old browser-only speechSynthesis approach.
