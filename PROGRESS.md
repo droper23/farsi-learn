@@ -2,7 +2,10 @@
 
 Written for continuity — a future session (human or AI) picking this up
 cold should be able to read this and know exactly where things stand.
-Last updated: 2026-08-31, end of the initial build session.
+Last updated: 2026-08-31, end of the "beginner-experience deepening" pass
+(onboarding, Persian keyboard, saved-word SRS, matching/listening rotation,
+content audit tooling, content depth, a11y pass) — see "What changed in the
+second pass" below for the full rundown.
 
 ## Status: functional, deployed, tested
 
@@ -10,13 +13,17 @@ Last updated: 2026-08-31, end of the initial build session.
   `main` via `.github/workflows/deploy.yml`.
 - `npm run lint && npm run typecheck && npm run test && npm run build` all
   pass clean.
-- Manually verified in Chrome: dashboard → lesson flow (teach cards → MCQ
-  exercise → grading/feedback → lesson completion) → dictionary search →
-  saved words → progress/settings, in both the desktop sidebar layout and
-  mobile bottom-nav layout. Clean console, no runtime errors.
-- 46 automated tests, including a full end-to-end smoke test
+- Manually verified in Chrome (initial build session): dashboard → lesson
+  flow (teach cards → MCQ exercise → grading/feedback → lesson completion)
+  → dictionary search → saved words → progress/settings, in both the
+  desktop sidebar layout and mobile bottom-nav layout. Clean console, no
+  runtime errors. The second pass (onboarding, keyboard, saved-word SRS,
+  matching/listening) was verified via the automated test suite below
+  rather than a repeat manual walkthrough — worth a manual spot-check.
+- 71 automated tests (up from 46), including a full end-to-end smoke test
   (`src/App.test.tsx`) that renders the real app against a real (fake-
-  indexeddb) database and drives an entire lesson through actual UI clicks.
+  indexeddb) database and drives an entire lesson through actual UI clicks,
+  plus a dedicated test that walks a brand-new user through onboarding.
 
 ## Architecture decisions worth knowing
 
@@ -76,12 +83,82 @@ Last updated: 2026-08-31, end of the initial build session.
   the explicit brief to prioritize learning effectiveness over engagement
   theater.
 
+## What changed in the second pass (onboarding, keyboard, SRS, content depth, a11y)
+
+A follow-up session focused on making the app meaningfully better for a
+brand-new beginner, in four workstreams:
+
+- **First-run experience.** A short onboarding flow (`src/components/
+  onboarding/Onboarding.tsx`, gated by `App.tsx` on the `onboardingComplete`
+  setting) now runs before the dashboard for new users: welcome → daily
+  goal preset (wired to `newItemsPerDay`) → transliteration on/off (wired
+  to `showTransliteration`) → first-lesson-or-dashboard. Typed-answer
+  exercises with `answerLang: 'fa'` now show an on-screen Persian keyboard
+  (`PersianKeyboard.tsx`, all 32 letters + ZWNJ) that inserts at the
+  input's actual cursor position, not just the end. The dashboard's "new
+  items today" line is now real (`getTodaySummary().newItemsToday`) — this
+  also fixed a real bug where `getDueSummary()`'s daily new-item cap could
+  never actually trigger (see `storage/progressRepo.ts`). Saved/starred
+  words now get full SRS integration: words with a `vocabId` join the
+  existing 'vocab' review queue (reusing its generators), and a new
+  `ProgressSettings` form lets learners add fully custom entries, which
+  get their own `'custom'` `ReviewableKind` and generators
+  (`generateCustomMcq`/`generateCustomTypeAnswer` in
+  `lib/exercises/generator.ts`) with vocabulary-pool distractors, clearly
+  labeled "your own word" in the UI.
+- **Exercise engine.** Matching exercises (`generateVocabMatching`) are now
+  used as extra practice for freshly-taught vocab batches of 4–6 in
+  `buildNextLesson` — review-session rotation deliberately stays as it
+  was, since a multi-item matching exercise can't attribute a result to
+  one item's SRS state. A new listening-comprehension exercise type
+  (`ListeningExercise`/`ListeningRunner`) plays a word/sentence via
+  `speakPersian()` and asks for the meaning; on a device with no Persian
+  voice it gracefully falls back to showing the text + transliteration
+  instead of a silent, broken control.
+- **Content correctness tooling + depth.** `npm run audit:content`
+  (`scripts/audit-content.ts`, via the new `tsx` devDependency) scans all
+  linguistic content and prints a report grouped by confidence, with a
+  full listing of every `needs-review` item — the working document for a
+  Persian speaker to check. `validate.test.ts` now explicitly enforces
+  that every item has a valid `confidence` and that every `needs-review`
+  item has a `note`. Deepened Levels 1–4: 4 more example sentences for
+  grammar concepts that had only one (or zero) linked examples, and 22
+  new vocabulary words in the sparsest existing categories (weather,
+  restaurant, transportation, travel, directions, work, technology, body)
+  — see "Content verification workflow" below for how these were checked.
+- **Accessibility.** An automated axe-core pass (`src/a11y.test.tsx`, via
+  `vitest-axe`) now runs against the dashboard, onboarding, the Persian
+  keyboard, and an MCQ exercise runner in CI. Not exhaustive — a manual
+  screen-reader pass is still worth doing (see below).
+
+## Content verification workflow (added in the second pass)
+
+Every new vocab/sentence item added in the second pass was checked against
+[vajehyab.com](https://vajehyab.com) (a Persian dictionary aggregator
+pulling from Dehkhoda/Moein/Amid, the standard reference dictionaries)
+before being committed — spelling, gloss, and usage all had to match
+cleanly for the item to be marked `confidence: 'verified'` instead of
+`'high-confidence'`. One phrase (`رمز عبور`) needed corroboration from a
+second source (WordHippo/Glosbe/translate.com agreed) since the single-page
+lookup was inconclusive for the two-word phrase as a unit. The four new
+example sentences reuse only already-verified vocabulary in grammatical
+patterns that were separately checked against university/reference Persian
+grammar resources (UT Austin's Persian Online, MSU OpenBooks, dastur.info)
+rather than a dictionary, since full sentences aren't dictionary entries.
+**Nothing pre-existing before the second pass was touched or re-verified**
+— the 11 `needs-review` items below are exactly the same 11 as before.
+
+This is a good workflow to keep using for future content additions: look
+the item up on a reputable Persian dictionary (vajehyab.com, FarsiDic, or
+similar) before committing it, and only use `'verified'` when that lookup
+actually confirmed cleanly — flag `needs-review` with a `note` otherwise.
+
 ## What's incomplete
 
 1. **Curriculum depth is uneven across levels.** Levels 1–4 (`u1-*`
    through `u4-*` in `src/content/curriculum/units.ts`) have real,
-   substantial content — full alphabet, ~340 vocab items across all the
-   requested categories, 26 grammar concepts with explanations, and ~35
+   substantial content — full alphabet, ~363 vocab items across all the
+   requested categories, 26 grammar concepts with explanations, and 44
    example sentences with word-by-word breakdowns, all cross-referenced
    and validated. **Levels 5 and 6 are seeded, not built out** — one small
    unit each (`u5-natural-conversation`, `u6-reading-authentic`), and
@@ -91,38 +168,49 @@ Last updated: 2026-08-31, end of the initial build session.
    discourse markers, longer/authentic dialogues, real reading passages
    with full glossing, more nuanced register content, and the grammar
    concepts a genuinely advanced learner needs (nuanced aspect, more
-   subordination, literary constructions).
+   subordination, literary constructions). This was explicitly out of
+   scope for the second pass too, per the brief.
 2. **No real recorded audio.** The 🔊 button uses browser `speechSynthesis`
    as a clearly-labeled approximate aid; see README "Audio /
    pronunciation" for why, and how to add real audio files later without
-   touching UI code.
-3. **No listening-comprehension exercise type.** Deliberately not built,
-   for the same reason as #2 — a listening exercise needs audio worth
-   trusting, which doesn't exist yet.
-4. **Matching exercises aren't wired into the SRS queue** — they're
-   generated (`generateVocabMatching`, `generateLetterWordMatching`) but
-   nothing currently calls them from the lesson/review session builders in
-   `src/lib/session.ts`. MCQ/typed-answer/word-order are the three types
-   actually in rotation. Wiring matching in would mean deciding when it's
-   pedagogically appropriate (probably: batches of 4-6 new vocab, not
-   review) rather than just adding it to the random rotation.
-5. **Cloud sync is upload/download, not real merge.** This was a
+   touching UI code. The new listening-comprehension exercise type is
+   built on the same synthesized voice, with the same disclosure and the
+   same no-voice fallback — still not a substitute for real audio.
+3. **Some existing vocabulary categories still have zero curriculum
+   coverage.** `weather`, `body`, `work`, and `technology` words (both
+   pre-existing and newly added in the second pass) are dictionary-
+   searchable but not taught in any unit yet — this predates the second
+   pass and wasn't restructured, since adding brand-new units is a
+   bigger scope than "deepen existing units." Worth a dedicated small
+   unit each if/when Levels 1–4 get another pass.
+4. **Cloud sync is upload/download, not real merge.** This was a
    deliberate simplicity trade-off (see README), but if two devices are
    both used actively without syncing between sessions, the loser's
    progress since the last sync is fully overwritten, not merged. Fine for
    "I have one phone and sometimes a laptop"; not fine for "I actively use
    two devices every day without syncing."
-6. **No automated accessibility audit tool run** (e.g. axe-core) — the app
-   was built with semantic HTML, ARIA labels on icon-only buttons,
-   `prefers-reduced-motion` handling, and large touch targets throughout,
-   and oxlint's jsx-a11y plugin is enabled and clean, but nothing has
-   verified this with a dedicated a11y testing tool or a screen reader.
+5. **The accessibility pass is automated-only, not manual.** `src/
+   a11y.test.tsx` catches obvious axe-core-detectable regressions on a
+   handful of screens/components, but nothing has been checked with an
+   actual screen reader (VoiceOver/NVDA/TalkBack) or a keyboard-only pass
+   across the whole app.
+6. **The new-item daily cap isn't enforced by lesson teaching, only by the
+   review queue.** `buildNextLesson()` always teaches a full lesson's worth
+   of unit content regardless of `newItemsPerDay` — the setting genuinely
+   affects `getDueSummary()`'s review-queue pacing (and, since the second
+   pass, the dashboard's "X of Y new items today" display), but a learner
+   who sets a low daily goal and then starts a lesson still gets that
+   lesson's full content in one sitting. Wiring the cap into lesson
+   pagination itself would be a bigger structural change.
 
 ## Content flagged `confidence: 'needs-review'`
 
-11 items out of 442 total content items (vocabulary + sentences + grammar
-concepts + alphabet + short vowels). Grep `confidence: 'needs-review'` to
-find them in source with full context; summary:
+11 items out of 468 total content items (vocabulary + sentences + grammar
+concepts + alphabet + short vowels) — unchanged from the initial build
+session; the second pass didn't touch any of these (see "Content
+verification workflow" above for what it did add/verify). Grep
+`confidence: 'needs-review'` to find them in source with full context, or
+run `npm run audit:content` for a generated report; summary:
 
 | Type | id | Persian | Gloss | Why flagged |
 |---|---|---|---|---|
@@ -141,14 +229,24 @@ find them in source with full context; summary:
 None of these are guesses presented as fact without a flag — they're all
 plausible-and-likely-correct content an AI author should not be fully
 trusted on without a native speaker's confirmation, per the project's
-content-quality policy (see `SourceNote` in `src/content/types.ts`).
+content-quality policy (see `SourceNote` in `src/content/types.ts`). Every
+one of the 11 now carries an explicit `note` explaining why (the second
+pass backfilled `note` on 7 of them that had a reason documented only in
+this file's table, not in the content itself — content and docs had
+drifted apart; they shouldn't need to again, since `validate.test.ts` now
+requires a `note` on every `needs-review` item).
 
 ## If you're picking this up to keep going
 
 Good next steps, roughly in priority order:
 1. Get the 11 `needs-review` items checked by a Persian speaker; flip
-   `confidence` to `'verified'` once confirmed (or fix and re-flag).
-2. Build out Levels 5–6 content (see #1 in "What's incomplete").
-3. Wire matching exercises into the session builder for new-vocab batches.
-4. Consider a real audio pipeline (recorded, not synthesized) if/when
-   available — the data model already has room for it.
+   `confidence` to `'verified'` once confirmed (or fix and re-flag). Run
+   `npm run audit:content` for the working list.
+2. A manual accessibility pass (screen reader + keyboard-only) beyond the
+   automated axe-core coverage in `src/a11y.test.tsx`.
+3. Build out Levels 5–6 content (see #1 in "What's incomplete").
+4. Small dedicated units for the still-untaught weather/body/work/
+   technology vocabulary (see #3 in "What's incomplete").
+5. Consider a real audio pipeline (recorded, not synthesized) if/when
+   available — the data model already has room for it, and the new
+   listening exercise type would immediately benefit from it.

@@ -22,6 +22,7 @@ npm run preview     # serve the production build locally
 npm run test         # run the test suite (vitest)
 npm run lint         # oxlint
 npm run typecheck    # tsc --noEmit
+npm run audit:content # confidence-grouped content report (needs-review items etc.)
 ```
 
 Requires Node 20+.
@@ -105,13 +106,19 @@ Every piece of linguistic content carries a `confidence` field:
 - `'high-confidence'` — standard, well-established Persian, low error risk.
 - `'needs-review'` — correct to the author's knowledge, but a colloquial
   contraction, idiom, or register judgment call worth a native-speaker
-  spot-check (each one also carries a `note` explaining *why* it's flagged).
-- `'verified'` — a human has explicitly confirmed it.
+  spot-check (each one also carries a `note` explaining *why* it's flagged;
+  `validate.test.ts` enforces that every `needs-review` item has one).
+- `'verified'` — explicitly confirmed correct, either by a human or by an
+  AI assistant that actually cross-checked it against a reputable Persian
+  dictionary (e.g. vajehyab.com, FarsiDic) and noted the source — not
+  claimed speculatively.
 
 This was populated by an AI assistant (see the project's `PROGRESS.md` for
 exactly what still needs review) — **treat `needs-review` items as flagged
 for a Persian speaker to check before fully trusting them**, and search the
-codebase for `confidence: 'needs-review'` to find all of them at once.
+codebase for `confidence: 'needs-review'` to find all of them at once, or
+run `npm run audit:content` for a generated report grouped by status with
+every `needs-review` item's id, Persian text, gloss, and note.
 
 ---
 
@@ -124,13 +131,18 @@ lapses, and configurable learning steps. It's a pure function
 (`applyRating(state, rating, config, now)` → new state), fully unit-tested in
 `scheduler.test.ts`, with no dependency on storage or React.
 
-Every reviewable thing (a letter, a word, a grammar concept, or a sentence)
-gets its own SRS record, keyed as `` `${kind}:${itemId}` ``
-(`src/content/types.ts` → `reviewableKey`) — so alphabet, vocabulary,
-grammar, and sentences all share one unified review queue instead of four
-disconnected ones. Struggling items (lapses) come back sooner automatically;
-mastered items (long, successful intervals) come back less often — this falls
-out of the algorithm itself rather than needing separate logic.
+Every reviewable thing (a letter, a word, a grammar concept, a sentence, or
+a learner-saved word) gets its own SRS record, keyed as
+`` `${kind}:${itemId}` `` (`src/content/types.ts` → `reviewableKey`) — so
+alphabet, vocabulary, grammar, sentences, and saved words all share one
+unified review queue instead of separate disconnected ones. Struggling
+items (lapses) come back sooner automatically; mastered items (long,
+successful intervals) come back less often — this falls out of the
+algorithm itself rather than needing separate logic. Saved words that
+point at real vocabulary reuse the `'vocab'` kind; fully custom,
+learner-typed entries (no matching vocabulary item) get their own
+`'custom'` kind with its own exercise generators
+(`generateCustomMcq`/`generateCustomTypeAnswer`).
 
 `src/lib/session.ts` ties this to the curriculum: `buildNextLesson()` teaches
 the next unfinished lesson's new content (registering each item in the SRS
@@ -198,6 +210,12 @@ pronunciation**, never presented as authoritative. The architecture
 could be swapped in later (e.g. `AlphabetLetter.exampleWords[].audioUrl`)
 without touching any UI component.
 
+The listening-comprehension exercise type (hear a word/sentence, pick its
+meaning) is built on this same synthesized voice and carries the same
+disclosure. On a device with no Persian voice at all, it falls back to
+showing the Persian text and transliteration directly instead of a silent,
+broken "play" button — see `ListeningRunner.tsx` and `hasPersianVoice()`.
+
 ---
 
 ## Testing
@@ -209,15 +227,30 @@ without touching any UI component.
 - `src/content/validate.test.ts` — every cross-reference between vocabulary,
   sentences, grammar, curriculum units, and the alphabet resolves to a real
   item; no duplicate ids; every Persian field actually contains Persian
-  script; every letter has all four joined forms.
+  script; every letter has all four joined forms; every item has a valid
+  `confidence` and every `needs-review` item has a `note`.
 - `src/lib/exercises/generator.test.ts` — exercise generation and grading
   (MCQ distractor uniqueness, typed-answer grading incl. Arabic/Persian
-  keyboard letter variants, word-order shuffling, adaptive-difficulty rating).
+  keyboard letter variants, word-order shuffling, adaptive-difficulty rating,
+  listening-exercise generation/grading, custom-saved-entry generation).
+- `src/lib/session.test.ts` — matching exercises appear in new-vocab lesson
+  batches of 4-6 (and don't for small/alphabet-only lessons); custom saved
+  entries resolve to a gradable exercise through `exerciseForReviewable`.
+- `src/components/exercises/TypeAnswerRunner.test.tsx` — the on-screen
+  Persian keyboard composes an answer correctly (append, mid-string insert
+  at the cursor, backspace, clear) and grades end-to-end.
+- `src/components/exercises/ListeningRunner.test.tsx` — the listening
+  exercise's no-Persian-voice text fallback vs. normal play/replay flow.
+- `src/a11y.test.tsx` — an automated axe-core accessibility pass over the
+  dashboard, onboarding, the Persian keyboard, and an MCQ exercise runner.
 - `src/App.test.tsx` — renders the real app against a real (fake-indexeddb)
   database and drives the dashboard, unit map, alphabet detail, dictionary
-  search, and **a complete lesson start-to-finish** through actual UI
-  interactions and real exercise grading. This is the project's substitute
-  for a scripted manual QA pass.
+  search, onboarding, and **a complete lesson start-to-finish** through
+  actual UI interactions and real exercise grading. This is the project's
+  substitute for a scripted manual QA pass.
+
+`npm run audit:content` (not part of `npm run test`) prints a
+confidence-grouped content report — see "The content-quality system" above.
 
 ---
 
@@ -231,7 +264,8 @@ src/
   auth/            optional Firebase sign-in + cloud sync (dynamically imported)
   lib/              exercise generation, session/lesson building, text
                      normalization, speech
-  components/       shared UI, exercise runners, lesson teach cards, layout
+  components/       shared UI, exercise runners, lesson teach cards, layout,
+                     onboarding
   screens/          one file per route
   hooks/            small reusable hooks (settings, async data loading)
 ```
@@ -243,4 +277,6 @@ the curriculum have real, substantial content; Levels 5–6 (upper-intermediate
 and advanced) are seeded with a small amount of content and clearly need
 expansion. A handful of colloquial expressions/idioms are marked
 `confidence: 'needs-review'` and should be spot-checked by a Persian speaker
-before being fully trusted.
+before being fully trusted (`npm run audit:content` for the full list). The
+accessibility pass is automated-only (axe-core) so far, not manually
+screen-reader-tested; cloud sync is upload/download, not a real merge.
