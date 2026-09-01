@@ -24,6 +24,9 @@ describe('Dictionary — default view shows every word, A-Z (instead of nothing)
 
     await user.type(screen.getByLabelText(/Search the dictionary/i), 'hello')
     expect(screen.queryByText(`All words (${vocabulary.length})`)).not.toBeInTheDocument()
-    expect(await screen.findByText('hello / hi')).toBeInTheDocument()
+    // The default view renders ~390 cards, so the re-render this search
+    // triggers is heavier than a typical test — allow more time under
+    // full-suite parallel load.
+    expect(await screen.findByText('hello / hi', {}, { timeout: 5000 })).toBeInTheDocument()
   })
 })
