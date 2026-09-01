@@ -42,6 +42,6 @@ describe('ProgressSettings — Saved words "Stop reviewing" control (H3)', () =>
     const resumeButton = await screen.findByRole('button', { name: /Resume reviewing "hello/i })
     await user.click(resumeButton)
     await waitFor(async () => expect(await db.reviewStates.get('vocab:greet-salam')).toMatchObject({ suspended: false }))
-    expect(screen.queryByText(/not being reviewed/i)).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText(/not being reviewed/i)).not.toBeInTheDocument())
   })
 })

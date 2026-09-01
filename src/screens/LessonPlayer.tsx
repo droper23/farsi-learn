@@ -130,10 +130,13 @@ export function LessonPlayer() {
   return (
     <div>
       <div className="px-4 pt-5 md:px-0">
-        <div className="mb-4 flex items-center gap-3">
+        <div className="mb-2 flex items-center gap-3">
           <button onClick={() => navigate('/')} aria-label="Exit lesson" className="text-[var(--color-ink-muted)]">✕</button>
           <ProgressBar value={stepIndex} max={plan.data.steps.length} />
         </div>
+        <p className="mb-4 truncate text-xs text-[var(--color-ink-muted)]">
+          {plan.data.unit.title} — lesson {plan.data.lessonNumber} of {plan.data.totalLessons} · step {stepIndex + 1} of {plan.data.steps.length}
+        </p>
       </div>
       <div className="px-4 pb-8 md:px-0">
         {step.step === 'teach' && (

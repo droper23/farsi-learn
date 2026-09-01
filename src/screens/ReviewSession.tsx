@@ -17,16 +17,32 @@ export function ReviewSession() {
   const exercises = useAsyncData(() => buildReviewExercises(30), [])
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
+  // Set by "End session" (M5) — shows the same completion screen as
+  // finishing the whole list, but scored against what was actually
+  // answered (`index`) instead of the full `list.length`.
+  const [endedEarly, setEndedEarly] = useState(false)
   // Only needed to fill the empty/complete states with something useful
   // (streak, next-lesson pointer) — not fetched on the hot path of
   // answering a review question.
   const settings = useLiveQuery(() => getSettings(), [])
-  const summary = useAsyncData(() => getTodaySummary(), [])
+  const sessionComplete = !!exercises.data && exercises.data.length > 0 && (endedEarly || index >= exercises.data.length)
+  // Re-fetched once the session completes (not on every answer) so
+  // "reviewsDue" reflects what's actually still due after this batch —
+  // used below to offer "Load more" when the 30-item cap left more behind
+  // (review M5).
+  const summary = useAsyncData(() => getTodaySummary(), [sessionComplete])
   const currentReviewable = exercises.data?.[index]?.reviewable
   const forecasts = useAsyncData(
     () => currentReviewable ? forecastForReviewable(currentReviewable.kind, currentReviewable.itemId) : Promise.resolve(undefined),
     [currentReviewable?.kind, currentReviewable?.itemId],
   )
+
+  function loadMore() {
+    setIndex(0)
+    setCorrectCount(0)
+    setEndedEarly(false)
+    exercises.reload()
+  }
 
   async function handleComplete(correct: boolean, hintsUsed: number) {
     const list = exercises.data
@@ -74,19 +90,36 @@ export function ReviewSession() {
     )
   }
 
-  if (index >= list.length) {
+  if (endedEarly || index >= list.length) {
+    // `index` is the number actually answered — equal to list.length on a
+    // natural finish, smaller when the learner tapped "End session".
+    const answered = index
     return (
       <div>
         <PageHeader title="Review complete!" />
         <div className="flex flex-col gap-4 px-4 md:px-0">
-          <Card className="text-center">
-            <p className="text-3xl font-semibold text-[var(--color-good)]">{Math.round((correctCount / list.length) * 100)}%</p>
-            <p className="text-sm text-[var(--color-ink-muted)]">{correctCount} of {list.length} correct</p>
-          </Card>
+          {answered > 0 ? (
+            <Card className="text-center">
+              <p className="text-3xl font-semibold text-[var(--color-good)]">{Math.round((correctCount / answered) * 100)}%</p>
+              <p className="text-sm text-[var(--color-ink-muted)]">{correctCount} of {answered} correct</p>
+            </Card>
+          ) : (
+            <Card className="text-center">
+              <p className="text-sm text-[var(--color-ink-muted)]">Session ended — nothing answered yet.</p>
+            </Card>
+          )}
           {(settings?.currentStreak ?? 0) > 0 && (
             <Card className="flex items-center gap-3">
               <span className="text-2xl" aria-hidden="true">🔥</span>
               <p className="text-sm font-medium">{settings?.currentStreak}-day streak</p>
+            </Card>
+          )}
+          {!endedEarly && (summary.data?.reviewsDue ?? 0) > 0 && (
+            <Card className="flex flex-col gap-2">
+              <p className="text-sm text-[var(--color-ink-muted)]">
+                {summary.data!.reviewsDue} more review{summary.data!.reviewsDue === 1 ? ' is' : 's are'} due today — this batch was capped at 30.
+              </p>
+              <Button onClick={loadMore} variant="secondary" fullWidth>Load more reviews</Button>
             </Card>
           )}
           {summary.data?.hasLesson && (
@@ -109,6 +142,14 @@ export function ReviewSession() {
         <div className="mb-4 flex items-center gap-3">
           <button onClick={() => navigate('/')} aria-label="Exit review" className="text-[var(--color-ink-muted)]">✕</button>
           <ProgressBar value={index} max={list.length} />
+          {index > 0 && (
+            <button
+              onClick={() => setEndedEarly(true)}
+              className="shrink-0 whitespace-nowrap text-xs font-medium text-[var(--color-ink-muted)] underline"
+            >
+              End session
+            </button>
+          )}
         </div>
       </div>
       <div className="px-4 pb-8 md:px-0">
