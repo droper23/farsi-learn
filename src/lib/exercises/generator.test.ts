@@ -51,6 +51,30 @@ describe('alphabet exercises', () => {
   it('non-joining letters only offer isolated/final positions', () => {
     const ex = generateLetterPositionMcq(nonJoiningLetter)
     expect(['isolated', 'final']).toContain(ex.correctOptionId)
+    // isolated===initial and medial===final are identical glyphs for
+    // non-joining letters, so initial/medial must never be offered — doing
+    // so would give a second visually-correct-looking option graded wrong.
+    expect(ex.options.map((o) => o.id).sort()).toEqual(['final', 'isolated'])
+  })
+
+  it('joining letters offer all four distinguishable positions', () => {
+    const ex = generateLetterPositionMcq(sampleLetter)
+    expect(ex.options.map((o) => o.id).sort()).toEqual(['final', 'initial', 'isolated', 'medial'])
+  })
+
+  it('every offered option for the shown glyph is unambiguously wrong except the correct one', () => {
+    for (const letter of alphabet) {
+      for (let i = 0; i < 20; i++) {
+        const ex = generateLetterPositionMcq(letter)
+        const shownGlyph = letter.forms[ex.correctOptionId as 'isolated' | 'initial' | 'medial' | 'final']
+        for (const opt of ex.options) {
+          const optGlyph = letter.forms[opt.id as 'isolated' | 'initial' | 'medial' | 'final']
+          if (opt.id !== ex.correctOptionId) {
+            expect(optGlyph).not.toBe(shownGlyph)
+          }
+        }
+      }
+    }
   })
 })
 

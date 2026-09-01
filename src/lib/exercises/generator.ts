@@ -229,6 +229,11 @@ export function generateLetterPositionMcq(letter: AlphabetLetter): McqExercise {
     { id: 'medial', label: 'Medial (middle of a word)' },
     { id: 'final', label: 'Final (end of a word)' },
   ]
+  // Non-joining letters (ا د ذ ر ز ژ و) render isolated===initial and
+  // medial===final as identical glyphs, so offering all four positions as
+  // options would give two visually-indistinguishable "correct" choices.
+  // Restrict both the target and the offered options to the positions that
+  // are actually distinguishable for this letter.
   const applicable = letter.joinsNext
     ? positions
     : positions.filter((p) => p.id === 'isolated' || p.id === 'final')
@@ -238,7 +243,7 @@ export function generateLetterPositionMcq(letter: AlphabetLetter): McqExercise {
     reviewable: { kind: 'alphabet', itemId: letter.id },
     instructions: `Which form of ${letter.name} (${letter.forms.isolated}) is shown?`,
     promptFa: letter.forms[target.id],
-    options: positions.map((p) => ({ id: p.id, en: p.label })),
+    options: applicable.map((p) => ({ id: p.id, en: p.label })),
     correctOptionId: target.id,
     hints: [letter.joinsNext ? 'This letter connects on both sides.' : 'This letter never connects to the letter after it.'],
   }
