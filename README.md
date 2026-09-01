@@ -178,17 +178,33 @@ run. It only activates if you create your own free Firebase project:
 1. Create a project at https://console.firebase.google.com (free Spark plan).
 2. Add a **Web App** to it; copy the config values it gives you.
 3. Authentication → Sign-in method → enable **Google**.
-4. Firestore Database → create one (production mode), then set a rule so
+4. Authentication → Settings → **Authorized domains** → add the domain(s)
+   the app is actually served from (e.g. `droper23.github.io` for the
+   GitHub Pages deployment). Without this, sign-in fails with an
+   `unauthorized-domain` error on the deployed site even though it works on
+   `localhost`.
+5. Firestore Database → create one (production mode), then set a rule so
    each signed-in user can only touch their own document:
    ```
    match /farsiLearnBackups/{uid} {
      allow read, write: if request.auth != null && request.auth.uid == uid;
    }
    ```
-5. Copy `.env.local.example` to `.env.local` and fill in the six
-   `VITE_FIREBASE_*` values.
-6. Rebuild. Progress → "Cloud sync" now shows a **Sign in with Google**
-   button.
+6. Copy `.env.local.example` to `.env.local` and fill in the six
+   `VITE_FIREBASE_*` values, then rebuild — Progress → "Cloud sync" now
+   shows a **Sign in with Google** button locally.
+7. To enable it on the deployed GitHub Pages site too: `.env.local` is
+   gitignored and never reaches CI, so add the same six values as
+   **repository secrets** (Settings → Secrets and variables → Actions →
+   New repository secret, named exactly `VITE_FIREBASE_API_KEY`,
+   `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`,
+   `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`,
+   `VITE_FIREBASE_APP_ID`). `.github/workflows/deploy.yml` already reads
+   them into the build step — the next push to `main` (or a manual
+   `workflow_dispatch` run) picks them up. None of these values are secret
+   in the security sense (they end up in the public JS bundle regardless of
+   how they're stored); real protection comes from the Firestore rule
+   above, not from hiding the config.
 
 Sync is deliberately manual and explicit (**Upload** / **Download** buttons),
 not automatic background merging — with a review history that's small, "pick
