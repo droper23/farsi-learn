@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { McqExercise } from '../../lib/exercises/types'
 import type { RatingForecast } from '../../srs/types'
 import { gradeMcq } from '../../lib/exercises/grade'
+import { useSettings } from '../../hooks/useSettings'
 import { PersianText } from '../shared/PersianText'
 import { Button } from '../shared/Button'
 import { HintPanel } from '../shared/HintPanel'
@@ -17,6 +18,7 @@ export function McqRunner({ exercise, onComplete, forecasts }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hintsRevealed, setHintsRevealed] = useState(0)
   const answered = selected !== null
+  const { showTransliteration } = useSettings()
 
   function choose(optionId: string) {
     if (answered) return
@@ -51,7 +53,12 @@ export function McqRunner({ exercise, onComplete, forecasts }: Props) {
               className={`min-h-14 rounded-2xl border-2 px-4 py-3 text-left transition-colors ${stateClasses} disabled:opacity-100`}
             >
               {opt.fa ? (
-                <bdi lang="fa" dir="rtl" className="fa-text text-xl">{opt.fa}</bdi>
+                <span className="inline-flex flex-col gap-0.5">
+                  <bdi lang="fa" dir="rtl" className="fa-text text-xl">{opt.fa}</bdi>
+                  {showTransliteration && opt.translit && (
+                    <span className="ltr-isolate text-xs text-[var(--color-ink-muted)]">{opt.translit}</span>
+                  )}
+                </span>
               ) : (
                 <span className="text-base">{opt.en}</span>
               )}

@@ -108,6 +108,16 @@ describe('sentence exercises', () => {
       expect(ex.options.some((o) => o.id === ex.correctOptionId)).toBe(true)
     }
   })
+
+  it('fill-blank sets a blanked promptTranslit alongside promptFa, and every option carries its own translit', () => {
+    const withVocabWords = sentences.find((s) => s.words.some((w) => w.vocabId))!
+    const ex = generateSentenceFillBlank(withVocabWords)!
+    expect(ex.promptFa).toContain('______')
+    expect(ex.promptTranslit).toContain('______')
+    // Same number of space-separated tokens in both, so the blank lines up.
+    expect(ex.promptTranslit!.split(' ').length).toBe(ex.promptFa!.split(' ').length)
+    for (const opt of ex.options) expect(opt.translit).toBeTruthy()
+  })
 })
 
 describe('listening exercises', () => {

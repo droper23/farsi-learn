@@ -351,6 +351,7 @@ export function generateSentenceFillBlank(sentence: ExampleSentence): McqExercis
     : vocabulary.filter((v) => v.id !== target.vocabId)
   const distractors = sample(distractorPool, 3, () => false)
   const blankedFa = sentence.words.map((w) => (w === target ? '______' : w.fa)).join(' ')
+  const blankedTranslit = sentence.words.map((w) => (w === target ? '______' : w.translit)).join(' ')
   const options: ExerciseOption[] = shuffle([
     { id: target.vocabId!, fa: target.fa, translit: target.translit },
     ...distractors.map((d) => ({ id: d.id, fa: d.fa, translit: d.translit })),
@@ -359,7 +360,7 @@ export function generateSentenceFillBlank(sentence: ExampleSentence): McqExercis
     id: exerciseId(`fill-blank-${sentence.id}`), kind: 'mcq',
     reviewable: { kind: 'sentence', itemId: sentence.id },
     instructions: 'Choose the word that fills the blank',
-    promptFa: blankedFa, promptEn: sentence.en,
+    promptFa: blankedFa, promptTranslit: blankedTranslit, promptEn: sentence.en,
     options, correctOptionId: target.vocabId!,
     hints: [`Meaning of the sentence: ${sentence.en}`],
   }

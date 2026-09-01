@@ -11,6 +11,7 @@ import { generateVocabMcq } from './lib/exercises/generator'
 import { vocabulary } from './content/vocabulary'
 import { Dictionary } from './screens/Dictionary'
 import { Stats } from './screens/Stats'
+import { AlphabetCheatSheet } from './screens/Alphabet/AlphabetCheatSheet'
 
 /**
  * A small automated accessibility pass (axe-core via vitest-axe), run
@@ -70,6 +71,13 @@ describe('accessibility', () => {
   it('the stats/mastery screen has no obvious axe violations', async () => {
     const { container } = render(<MemoryRouter><Stats /></MemoryRouter>)
     await screen.findByRole('heading', { name: /Stats & Mastery/i })
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('the alphabet cheat sheet has no obvious axe violations, collapsed and expanded', async () => {
+    const { container } = render(<MemoryRouter><AlphabetCheatSheet /></MemoryRouter>)
+    expect(await axe(container)).toHaveNoViolations()
+    fireEvent.click(screen.getByRole('button', { name: /Expand all/i }))
     expect(await axe(container)).toHaveNoViolations()
   })
 })

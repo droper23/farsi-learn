@@ -71,6 +71,13 @@ export function Dictionary() {
 
   const categories = useMemo(() => categoryCounts(), [])
   const browseItems = useMemo(() => (category ? vocabulary.filter((v) => v.category === category) : []), [category])
+  // Default search-tab view (no query yet): every word, A–Z by its English
+  // gloss — so there's something to browse immediately instead of a blank
+  // "type to search" prompt.
+  const alphabeticalVocab = useMemo(
+    () => [...vocabulary].sort((a, b) => a.en.localeCompare(b.en)),
+    [],
+  )
 
   async function toggleSave(vocabId: string, fa: string, translit: string, en: string) {
     if (savedIds.has(vocabId)) {
@@ -145,7 +152,14 @@ export function Dictionary() {
             />
 
             {!results && (
-              <p className="text-sm text-[var(--color-ink-muted)]">Type at least 2 characters to search {vocabulary.length}+ words, grammar topics, and the alphabet.</p>
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-[var(--color-ink-muted)]">
+                  Type to search {vocabulary.length}+ words, grammar topics, and the alphabet — or browse everything below, A–Z.
+                </p>
+                <ResultSection title={`All words (${alphabeticalVocab.length})`}>
+                  {alphabeticalVocab.map((v) => <VocabRow key={v.id} v={v} />)}
+                </ResultSection>
+              </div>
             )}
 
             {results && (
