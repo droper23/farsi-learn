@@ -104,6 +104,62 @@ further down are kept for history.
   the explicit brief to prioritize learning effectiveness over engagement
   theater.
 
+## What changed in the sixth pass (writing-practice keyboard, per-unit practice types, dictionary/onboarding, content growth)
+
+Direct follow-up requests in the same ongoing session, plus a "make this
+ready to send to other people" pass. 244 automated tests now (up from
+234), `npm run typecheck`/`lint`/`build` all clean.
+
+- **Writing practice no longer opens the device's own keyboard.** The
+  Persian-answer `<input>` in `TypeAnswerRunner` is now `readOnly` (+
+  `inputMode="none"`) whenever `answerLang === 'fa'` — composing the
+  answer is entirely through the on-screen `PersianKeyboard` buttons,
+  which still insert/delete at the tracked cursor position exactly as
+  before. English-answer exercises are untouched (still a normal typable
+  field).
+- **`PersianKeyboard` was missing real vocabulary.** The 32-letter grid
+  had no way to type آ/أ/ئ (needed for real words like آب, متأسفم, رئیس)
+  or common punctuation (، ؟ ! .) used in phrase-style vocab entries like
+  "چطوری؟". Added a second key row with both.
+- **Fixed a real (pre-existing, not test-only) crash in `LessonPlayer`.**
+  `advance()` decided "is this the last step?" from a `stepIndex` value
+  captured in the render closure; if it ran twice before React committed
+  the first call's state update (e.g. a fast double-tap on "Got it"),
+  both calls read the same stale index, both concluded "not the last
+  step," and `stepIndex` ended up incremented twice — running past
+  `steps.length` and crashing the render (`step.step` on `undefined`).
+  Found via intermittent CI-style flake in the full-lesson smoke test.
+  Fixed with an `advancing` ref that locks between "advance requested"
+  and "the resulting render actually committed."
+- **Practice tab: choose a practice type per unit**, not just one fixed
+  mode. Clicking a unit under "Practice by unit" now expands (instead of
+  navigating immediately) into Standard practice / Weak spots / Writing
+  practice / Reading practice (the last only shown for units that
+  actually have passages). `buildFocusedSession` gained an `onlyWeak`
+  flag orthogonal to `filterBy` (so "weak spots within this one unit" is
+  expressible), and `buildWritingPractice` gained an optional `unitId`
+  filter; `Reading` accepts an optional `unitId` nav-state filter too.
+- **Dictionary "Learned" tab.** A third mode alongside Search/Browse:
+  just the words (any `vocab` reviewState) and phrases (any `sentence`
+  reviewState) the learner has actually been taught or saved — not the
+  full ~400-entry dictionary. Answers "what have I actually learned so
+  far?", which neither Search (everything) nor Browse (by topic,
+  regardless of progress) could.
+- **Onboarding now mentions local-only storage + optional sync** (one
+  added line on the welcome step) — relevant once this app has an
+  audience beyond one device/browser profile: no account is required,
+  progress lives in this browser via IndexedDB, and cross-device sync is
+  an explicit opt-in from Progress → Settings, not automatic.
+- **Vocabulary grown from 393 to 417 words**, targeting the three
+  thinnest categories (health, shopping, nature were all at 7 words):
+  8 each, common/unambiguous everyday vocabulary (fever, pharmacy,
+  dentist, discount, clothes, customer, river, forest, animal, dog...),
+  all `confidence: 'high-confidence'`, including two new compound verbs
+  (سرما خوردن "to catch a cold", پرو کردن "to try on") that conjugate
+  correctly through the existing rule-based system. Audio generated for
+  all 23 new distinct strings via the existing `edge-tts` pipeline (one
+  word's audio text happened to already exist from elsewhere).
+
 ## What changed in the fifth pass (autonomous review fixes + audio + Practice tab)
 
 Driven by `farsi-learn-review-2026-09-01.md`, an autonomous read-only review

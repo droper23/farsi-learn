@@ -84,6 +84,10 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
         connect into words — then build up through everyday vocabulary, grammar, and full sentences.
         Spaced-repetition review keeps everything you've learned fresh automatically.
       </p>
+      <p className="text-xs text-[var(--color-ink-muted)]">
+        No account needed — your progress is saved right on this device. If you want it backed up or
+        synced to another device, you can optionally sign in later from Progress → Settings.
+      </p>
       <Button onClick={onNext} fullWidth>Let's go</Button>
     </Card>
   )

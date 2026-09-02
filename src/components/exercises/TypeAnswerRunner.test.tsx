@@ -79,4 +79,23 @@ describe('TypeAnswerRunner + Persian keyboard composition', () => {
     await user.click(screen.getByRole('button', { name: /^Check$/i }))
     expect(screen.queryByRole('group', { name: /Persian letter keyboard/i })).not.toBeInTheDocument()
   })
+
+  it('marks the Persian answer field read-only (button-only input — no native/virtual keyboard), but leaves the English field normally typable', () => {
+    const { rerender } = render(<TypeAnswerRunner exercise={faExercise} onComplete={vi.fn()} />)
+    expect(screen.getByRole('textbox')).toHaveAttribute('readonly')
+
+    rerender(<TypeAnswerRunner exercise={{ ...faExercise, answerLang: 'en', acceptedAnswers: ['hello'] }} onComplete={vi.fn()} />)
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly')
+  })
+
+  it('includes letter variants and punctuation missing from the base 32-letter keyboard, needed for real vocabulary like "آب" and "چطوری؟"', async () => {
+    const user = userEvent.setup()
+    render(<TypeAnswerRunner exercise={faExercise} onComplete={vi.fn()} />)
+    const input = screen.getByRole('textbox') as HTMLInputElement
+
+    await user.click(screen.getByTestId('kbd-key-alef-madda'))
+    await waitFor(() => expect(input.value).toBe('آ'))
+    await user.click(screen.getByTestId('kbd-key-question-mark'))
+    await waitFor(() => expect(input.value).toBe('آ؟'))
+  })
 })

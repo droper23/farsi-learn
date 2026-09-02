@@ -40,7 +40,7 @@ function categoryCounts(): Array<{ category: VocabCategory; count: number }> {
 }
 
 export function Dictionary() {
-  const [mode, setMode] = useState<'search' | 'browse'>('search')
+  const [mode, setMode] = useState<'search' | 'browse' | 'learned'>('search')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<VocabCategory | null>(null)
 
@@ -50,6 +50,13 @@ export function Dictionary() {
   // here), not just because it's starred.
   const queuedIds = useLiveQuery(
     () => db.reviewStates.where('kind').equals('vocab').toArray().then((s) => new Set(s.map((x) => x.itemId))),
+    [],
+  ) ?? new Set()
+  // Phrases (sentences) the learner has already been taught, for the
+  // "Learned" tab — same "has any SRS state at all" signal as queuedIds,
+  // just for the 'sentence' kind instead of 'vocab'.
+  const learnedSentenceIds = useLiveQuery(
+    () => db.reviewStates.where('kind').equals('sentence').toArray().then((s) => new Set(s.map((x) => x.itemId))),
     [],
   ) ?? new Set()
 
@@ -71,6 +78,12 @@ export function Dictionary() {
 
   const categories = useMemo(() => categoryCounts(), [])
   const browseItems = useMemo(() => (category ? vocabulary.filter((v) => v.category === category) : []), [category])
+  // Not memoized: queuedIds/learnedSentenceIds are fresh Set instances from
+  // useLiveQuery on every resolution, so a useMemo keyed on them would just
+  // recompute every render anyway — these filters are cheap enough (a few
+  // hundred items) not to need it.
+  const learnedVocab = vocabulary.filter((v) => queuedIds.has(v.id)).sort((a, b) => a.en.localeCompare(b.en))
+  const learnedPhrases = sentences.filter((s) => learnedSentenceIds.has(s.id))
   // Default search-tab view (no query yet): every word, A–Z by its English
   // gloss — so there's something to browse immediately instead of a blank
   // "type to search" prompt.
@@ -137,6 +150,13 @@ export function Dictionary() {
             className={`min-h-11 flex-1 rounded-full text-sm font-medium ${mode === 'browse' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-ink-muted)]'}`}
           >
             Browse by category
+          </button>
+          <button
+            role="tab" aria-selected={mode === 'learned'}
+            onClick={() => setMode('learned')}
+            className={`min-h-11 flex-1 rounded-full text-sm font-medium ${mode === 'learned' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-ink-muted)]'}`}
+          >
+            Learned
           </button>
         </div>
 
@@ -234,6 +254,29 @@ export function Dictionary() {
               </div>
             )}
           </>
+        )}
+
+        {mode === 'learned' && (
+          <div className="flex flex-col gap-6">
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              Just the words and phrases you've actually been taught or saved — not the whole dictionary.
+            </p>
+            <ResultSection title={`Words (${learnedVocab.length})`}>
+              {learnedVocab.length === 0
+                ? <p className="text-sm text-[var(--color-ink-muted)]">Nothing learned yet — finish a lesson or star a word to see it here.</p>
+                : learnedVocab.map((v) => <VocabRow key={v.id} v={v} />)}
+            </ResultSection>
+            <ResultSection title={`Phrases (${learnedPhrases.length})`}>
+              {learnedPhrases.length === 0
+                ? <p className="text-sm text-[var(--color-ink-muted)]">No phrases learned yet.</p>
+                : learnedPhrases.map((s) => (
+                  <Card key={s.id}>
+                    <PersianText fa={s.fa} translit={s.translit} size="sm" />
+                    <p className="text-sm text-[var(--color-ink-muted)]">{s.en}</p>
+                  </Card>
+                ))}
+            </ResultSection>
+          </div>
         )}
       </div>
     </div>

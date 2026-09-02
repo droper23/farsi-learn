@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { buildNextLesson, markLessonComplete, getTodaySummary, forecastForReviewable } from '../lib/session'
@@ -37,8 +37,23 @@ export function LessonPlayer() {
     [currentReviewable?.kind, currentReviewable?.itemId],
   )
 
+  // Guards against advancing twice for the same step. advance() reads
+  // stepIndex from the render closure to decide "is this the last step?" —
+  // if it's called a second time before React commits the first call's
+  // state update (e.g. a rapid double-click/double-tap on "Got it" or
+  // "Continue"), both calls see the same stale stepIndex, both conclude
+  // "not the last step", and stepIndex ends up incremented twice instead
+  // of once — running past plan.data.steps.length and crashing the render
+  // (`step.step` on undefined). The ref is released by the effect below,
+  // once stepIndex/finished actually change, not synchronously — so it
+  // stays locked for the entire span between "advance was requested" and
+  // "the resulting render committed".
+  const advancing = useRef(false)
+  useEffect(() => { advancing.current = false }, [stepIndex, finished])
+
   async function advance() {
-    if (!plan.data) return
+    if (!plan.data || advancing.current) return
+    advancing.current = true
     if (stepIndex + 1 >= plan.data.steps.length) {
       await markLessonComplete(plan.data.unit.id)
       setFinished(true)

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { levels, unitsForLevel } from '../content/curriculum'
@@ -16,6 +17,7 @@ export function Practice() {
   const navigate = useNavigate()
   const progress = useLiveQuery(() => db.unitProgress.toArray(), []) ?? []
   const progressById = new Map(progress.map((p) => [p.unitId, p]))
+  const [openUnitId, setOpenUnitId] = useState<string | null>(null)
 
   return (
     <div>
@@ -59,15 +61,17 @@ export function Practice() {
                 <div className="flex flex-col gap-2">
                   {unitsForLevel(level.level).map((unit) => {
                     const completed = progressById.get(unit.id)?.lessonsCompleted ?? 0
+                    const isOpen = openUnitId === unit.id
+                    const hasPassages = (unit.passageIds?.length ?? 0) > 0
                     return (
-                      <button
-                        key={unit.id}
-                        type="button"
-                        aria-label={`Practice ${unit.title}`}
-                        onClick={() => navigate('/focused', { state: { filterBy: 'unit', unitId: unit.id } })}
-                        className="text-left"
-                      >
-                        <Card className="flex items-center justify-between gap-3 transition-colors hover:border-[var(--color-brand)]">
+                      <Card key={unit.id} className="flex flex-col gap-3">
+                        <button
+                          type="button"
+                          aria-expanded={isOpen}
+                          aria-label={`Choose a way to practice ${unit.title}`}
+                          onClick={() => setOpenUnitId(isOpen ? null : unit.id)}
+                          className="flex items-center justify-between gap-3 text-left"
+                        >
                           <div className="min-w-0 flex-1">
                             <p className="font-medium">{unit.title}</p>
                             {completed > 0 ? (
@@ -78,9 +82,44 @@ export function Practice() {
                               <p className="text-xs text-[var(--color-ink-muted)]">Not started yet</p>
                             )}
                           </div>
-                          <span className="shrink-0 text-xs font-medium text-[var(--color-brand)]">Practice →</span>
-                        </Card>
-                      </button>
+                          <span className="shrink-0 text-[var(--color-ink-muted)]" aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
+                        </button>
+
+                        {isOpen && (
+                          <div className="grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-3 sm:grid-cols-4">
+                            <button
+                              type="button"
+                              onClick={() => navigate('/focused', { state: { filterBy: 'unit', unitId: unit.id } })}
+                              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-left text-sm font-medium hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+                            >
+                              Standard practice
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => navigate('/focused', { state: { filterBy: 'unit', unitId: unit.id, onlyWeak: true } })}
+                              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-left text-sm font-medium hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+                            >
+                              Weak spots
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => navigate('/focused', { state: { writing: true, unitId: unit.id } })}
+                              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-left text-sm font-medium hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+                            >
+                              Writing practice
+                            </button>
+                            {hasPassages && (
+                              <Link
+                                to="/reading"
+                                state={{ unitId: unit.id }}
+                                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-left text-sm font-medium hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+                              >
+                                Reading practice
+                              </Link>
+                            )}
+                          </div>
+                        )}
+                      </Card>
                     )
                   })}
                 </div>

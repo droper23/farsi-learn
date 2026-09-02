@@ -87,8 +87,9 @@ describe('App smoke test', () => {
     window.location.hash = '#/practice'
     await screen.findByRole('heading', { name: /^Practice$/i })
     expect(screen.queryByRole('button', { name: /Practice comprehension questions/i })).not.toBeInTheDocument()
-    const unitButton = await screen.findByRole('button', { name: /^Practice The Alphabet, Part 1$/i })
+    const unitButton = await screen.findByRole('button', { name: /Choose a way to practice The Alphabet, Part 1/i })
     await user.click(unitButton)
+    await user.click(await screen.findByRole('button', { name: /^Standard practice$/i }))
     expect(await screen.findByText(/haven't started this unit/i)).toBeInTheDocument()
   })
 
@@ -202,7 +203,15 @@ describe('App smoke test', () => {
       if (continueButton) {
         await user.click(continueButton)
       } else if (textInput) {
-        await user.type(textInput, 'x')
+        // Persian answers are read-only now (button-only input, no native
+        // keyboard — see TypeAnswerRunner) — compose via the on-screen
+        // keyboard instead of typing directly into the field.
+        if (textInput.readOnly) {
+          await user.click(screen.getByTestId('kbd-key-alef'))
+        } else {
+          await user.type(textInput, 'x')
+        }
+        await waitFor(() => expect(checkButton).not.toBeDisabled())
         await user.click(checkButton!)
       } else if (wordPool.length > 0) {
         for (const w of wordPool) await user.click(w)

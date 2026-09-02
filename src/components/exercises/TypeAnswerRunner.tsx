@@ -97,10 +97,19 @@ export function TypeAnswerRunner({ exercise, onComplete, forecasts }: Props) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
         disabled={submitted}
+        // Persian answers are built entirely from the on-screen keyboard
+        // below, not the device's own keyboard — readOnly blocks native
+        // text entry (virtual or physical) while still allowing focus,
+        // tap-to-position, and selectionStart/selectionEnd, which
+        // insertAtCursor/backspaceAtCursor rely on. inputMode="none" is a
+        // belt-and-suspenders hint for browsers that still pop the virtual
+        // keyboard on a focused readOnly field.
+        readOnly={exercise.answerLang === 'fa'}
+        inputMode={exercise.answerLang === 'fa' ? 'none' : undefined}
         dir={exercise.answerLang === 'fa' ? 'rtl' : 'ltr'}
         lang={exercise.answerLang}
         aria-label={exercise.answerLang === 'fa' ? 'Type your answer in Persian' : 'Type your answer in English'}
-        placeholder={exercise.answerLang === 'fa' ? 'بنویسید...' : 'Type your answer...'}
+        placeholder={exercise.answerLang === 'fa' ? 'از صفحه‌کلید زیر استفاده کنید' : 'Type your answer...'}
         className={`min-h-14 rounded-2xl border-2 px-4 py-3 text-lg outline-none ${
           submitted
             ? correct ? 'border-[var(--color-good)] bg-[var(--color-good-soft)]' : 'border-[var(--color-bad)] bg-[var(--color-bad-soft)]'

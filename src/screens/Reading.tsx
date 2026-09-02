@@ -1,11 +1,20 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { passages } from '../content/passages'
+import { findUnit } from '../content/curriculum'
 import { generatePassageComprehensionMcq } from '../lib/exercises/generator'
 import { PageHeader } from '../components/shared/PageHeader'
 import { Card } from '../components/shared/Card'
 import { Button } from '../components/shared/Button'
 import { PassageTeach } from '../components/lesson/TeachCard'
 import { ExerciseRunner } from '../components/exercises/ExerciseRunner'
+
+interface ReadingState {
+  /** Set when arriving from Practice tab's "Reading practice" for one
+   *  specific unit — narrows the list to just that unit's passages
+   *  instead of the whole library. */
+  unitId?: string
+}
 
 /** Reading library (review M3): the four Level-6 passages were previously
  *  viewable only once, while their lesson was being taught, with no way to
@@ -15,6 +24,10 @@ import { ExerciseRunner } from '../components/exercises/ExerciseRunner'
  *  (no new SRS tracking — the passage's sentences are already individually
  *  tracked wherever they were first taught). */
 export function Reading() {
+  const location = useLocation()
+  const { unitId } = (location.state as ReadingState | null) ?? {}
+  const unit = unitId ? findUnit(unitId) : undefined
+  const visiblePassages = unit ? passages.filter((p) => unit.passageIds?.includes(p.id)) : passages
   const [openId, setOpenId] = useState<string | null>(null)
   const [quizId, setQuizId] = useState<string | null>(null)
 
@@ -24,12 +37,17 @@ export function Reading() {
 
   return (
     <div>
-      <PageHeader title="Reading practice" subtitle="Revisit any passage you've already learned, or re-check your comprehension" />
+      <PageHeader
+        title="Reading practice"
+        subtitle={unit ? `Passages from ${unit.title}` : "Revisit any passage you've already learned, or re-check your comprehension"}
+      />
       <div className="flex flex-col gap-3 px-4 pb-8 md:px-0">
-        {passages.length === 0 && (
-          <p className="text-sm text-[var(--color-ink-muted)]">No reading passages yet.</p>
+        {visiblePassages.length === 0 && (
+          <p className="text-sm text-[var(--color-ink-muted)]">
+            {unit ? "This unit doesn't have any reading passages." : 'No reading passages yet.'}
+          </p>
         )}
-        {passages.map((p) => {
+        {visiblePassages.map((p) => {
           const isOpen = openId === p.id
           return (
             <Card key={p.id} className="flex flex-col gap-3">

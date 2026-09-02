@@ -221,6 +221,18 @@ describe('buildFocusedSession', () => {
     const exercises = await buildFocusedSession({ filterBy: 'unit', unitId: 'u1-greetings' })
     expect(exercises).toEqual([])
   })
+
+  it('onlyWeak narrows a unit-filtered session down to just the weak items in that unit (Practice tab: pick a unit, then "Weak spots")', async () => {
+    await db.reviewStates.bulkPut([
+      // both belong to u1-greetings; only one is weak.
+      reviewState({ key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', lapseCount: 2 }),
+      reviewState({ key: 'vocab:greet-khodahafez', kind: 'vocab', itemId: 'greet-khodahafez' }),
+    ])
+    const exercises = await buildFocusedSession({ filterBy: 'unit', unitId: 'u1-greetings', onlyWeak: true })
+    const itemIds = exercises.map((e) => e.reviewable?.itemId)
+    expect(itemIds).toContain('greet-salam')
+    expect(itemIds).not.toContain('greet-khodahafez')
+  })
 })
 
 describe('buildWritingPractice (Practice tab)', () => {
@@ -253,5 +265,18 @@ describe('buildWritingPractice (Practice tab)', () => {
     const exercises = await buildWritingPractice()
     expect(exercises.length).toBe(1)
     expect(exercises[0].reviewable).toEqual({ kind: 'custom', itemId: 'custom-1' })
+  })
+
+  it('scopes to one unit when unitId is given (Practice tab: pick a unit, then "Writing practice")', async () => {
+    const now = Date.now()
+    await db.reviewStates.bulkPut([
+      // 'greet-salam' belongs to u1-greetings; 'num-1' does not.
+      { key: 'vocab:greet-salam', kind: 'vocab', itemId: 'greet-salam', state: 'review', dueAt: now, intervalDays: 10, easeFactor: 2.5, reviewCount: 3, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now },
+      { key: 'vocab:num-1', kind: 'vocab', itemId: 'num-1', state: 'review', dueAt: now, intervalDays: 10, easeFactor: 2.5, reviewCount: 3, lapseCount: 0, learningStepIndex: 0, createdAt: now, updatedAt: now },
+    ])
+    const exercises = await buildWritingPractice({ unitId: 'u1-greetings' })
+    const itemIds = exercises.map((e) => e.reviewable?.itemId)
+    expect(itemIds).toContain('greet-salam')
+    expect(itemIds).not.toContain('num-1')
   })
 })

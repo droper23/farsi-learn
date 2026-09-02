@@ -20,6 +20,8 @@ interface FocusedSessionState {
   /** Writing-only practice (Practice tab) — see buildWritingPractice.
    *  Takes priority over filterBy when set. */
   writing?: boolean
+  /** "Weak spots within this unit" — combine with filterBy: 'unit'. */
+  onlyWeak?: boolean
 }
 
 /** Practice outside the due-date schedule: "weak spots" and "by category"
@@ -33,9 +35,9 @@ export function FocusedSession() {
   const filterBy = options.filterBy ?? 'weak'
   const exercises = useAsyncData(
     () => options.writing
-      ? buildWritingPractice()
-      : buildFocusedSession({ filterBy, category: options.category, kind: options.kind, unitId: options.unitId }),
-    [options.writing, filterBy, options.category, options.kind, options.unitId],
+      ? buildWritingPractice({ unitId: options.unitId })
+      : buildFocusedSession({ filterBy, category: options.category, kind: options.kind, unitId: options.unitId, onlyWeak: options.onlyWeak }),
+    [options.writing, filterBy, options.category, options.kind, options.unitId, options.onlyWeak],
   )
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -45,9 +47,10 @@ export function FocusedSession() {
     [currentReviewable?.kind, currentReviewable?.itemId],
   )
 
-  const title = options.writing ? 'Writing practice'
+  const unitTitle = options.unitId && findUnit(options.unitId)?.title
+  const title = options.writing ? (unitTitle ? `Writing practice: ${unitTitle}` : 'Writing practice')
     : filterBy === 'weak' ? 'Weak spots'
-    : filterBy === 'unit' ? (options.unitId && findUnit(options.unitId)?.title) || 'Practice this unit'
+    : filterBy === 'unit' ? (options.onlyWeak ? (unitTitle ? `Weak spots: ${unitTitle}` : 'Weak spots') : unitTitle || 'Practice this unit')
     : `Practice: ${options.category ?? ''}`
 
   async function handleComplete(correct: boolean, hintsUsed: number) {

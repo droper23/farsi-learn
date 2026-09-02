@@ -218,6 +218,9 @@ export interface FocusedSessionOptions {
    *  from a specific unit, regardless of curriculum order or due dates
    *  (the Practice tab's "practice any lesson" entry point). */
   unitId?: string
+  /** Combine with any filterBy — narrows the chosen set down to just the
+   *  weak items within it (see the "onlyWeak" block below). */
+  onlyWeak?: boolean
   limit?: number
 }
 
@@ -250,7 +253,7 @@ function stateVocabCategory(state: ReviewState): VocabCategory | null {
 }
 
 export async function buildFocusedSession(options: FocusedSessionOptions): Promise<Exercise[]> {
-  const { kind, filterBy, category, unitId, limit = 20 } = options
+  const { kind, filterBy, category, unitId, onlyWeak, limit = 20 } = options
   let states = await getReviewStates(kind)
   states = states.filter((s) => !s.suspended && s.state !== 'new')
 
@@ -265,6 +268,15 @@ export async function buildFocusedSession(options: FocusedSessionOptions): Promi
     states = states.filter((s) => ids.has(`${s.kind}:${s.itemId}`))
   } else {
     states = category ? states.filter((s) => stateVocabCategory(s) === category) : []
+  }
+
+  // Orthogonal to filterBy — e.g. "weak spots within this one unit"
+  // (Practice tab: pick a unit, then pick "Weak spots" as the practice
+  // type), rather than only being able to combine weak-across-everything
+  // or this-unit-everything.
+  if (onlyWeak) {
+    states = states.filter(isWeak)
+    states.sort((a, b) => b.lapseCount - a.lapseCount || a.easeFactor - b.easeFactor)
   }
 
   const chosen = states.slice(0, limit)
@@ -296,10 +308,18 @@ function shuffled<T>(items: T[]): T[] {
  *  sentences' only production-shaped generator is word-order (arranging
  *  given words, not typing), so they're excluded rather than mislabeled
  *  as writing practice. */
-export async function buildWritingPractice(limit = 20): Promise<Exercise[]> {
-  const states = (await getReviewStates()).filter(
+export async function buildWritingPractice(options: { limit?: number; unitId?: string } = {}): Promise<Exercise[]> {
+  const { limit = 20, unitId } = options
+  let states = (await getReviewStates()).filter(
     (s) => !s.suspended && s.state !== 'new' && (s.kind === 'vocab' || s.kind === 'custom'),
   )
+  if (unitId) {
+    const unit = findUnit(unitId)
+    const ids = unit ? unitReviewableIds(unit) : new Set<string>()
+    // Saved ('custom') words aren't taught by any unit, so they'd never
+    // match a unit's id set — only vocab items can be unit-scoped here.
+    states = states.filter((s) => s.kind === 'vocab' && ids.has(`vocab:${s.itemId}`))
+  }
   const chosen = shuffled(states).slice(0, limit)
 
   const exercises: Exercise[] = []
